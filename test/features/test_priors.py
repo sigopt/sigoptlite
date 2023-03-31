@@ -6,6 +6,7 @@ from sigopt import Connection
 from sigopt.exception import SigOptException
 
 from sigoptlite.driver import LocalDriver
+
 from test.base_test import UnitTestsBase
 from test.constants import DEFAULT_METRICS
 

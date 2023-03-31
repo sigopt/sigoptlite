@@ -7,9 +7,11 @@ import numpy
 import pytest
 
 from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME, INT_EXPERIMENT_PARAMETER_NAME
+
 from sigoptlite.builders import LocalObservationBuilder
 from sigoptlite.models import LocalSuggestion
 from sigoptlite.sources import RandomSearchSource
+
 from test.constants import ALL_META, TEST_PROB_FAILED_OBSERVATION
 
 

@@ -17,6 +17,7 @@ from libsigopt.aux.constant import (
   ParameterTransformationNames,
 )
 from libsigopt.aux.geometry_utils import find_interior_point
+
 from sigoptlite.models import *
 
 

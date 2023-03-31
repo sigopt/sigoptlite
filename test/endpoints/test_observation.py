@@ -9,6 +9,7 @@ from sigopt import Connection
 from sigopt.exception import SigOptException
 
 from sigoptlite.driver import FIXED_EXPERIMENT_ID, LocalDriver
+
 from test.base_test import UnitTestsBase
 
 
