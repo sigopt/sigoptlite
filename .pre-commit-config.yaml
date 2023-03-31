@@ -24,6 +24,10 @@ repos:
     rev: sigopt-22.10.0
     hooks:
       - id: black
+  - repo: https://github.com/syntaqx/git-hooks.git
+    rev: "v0.0.17"
+    hooks:
+      - id: circleci-config-validate
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
