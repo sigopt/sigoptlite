@@ -1,0 +1,45 @@
+version: 2.1
+
+jobs:
+  pylint:
+    docker:
+      - image: cimg/python:3.10
+    resource_class: small
+    steps:
+      - checkout
+      - run: pip install . -r requirements-dev.txt
+      - run: git ls-files '*.py' | xargs pylint --output-format=text -sn
+  pytest:
+    docker:
+      - image: cimg/python:3.10
+    resource_class: small
+    environment:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    steps:
+      - checkout
+      - run: pip install . -r requirements-dev.txt
+      - run: pytest -rw --durations=5 --junitxml=junit-results.xml test/
+      - store_test_results:
+          path: junit-results.xml
+  trivy:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - checkout
+      - run: |
+          set -e
+          curl -fSsLo trivy.deb https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb
+          sudo dpkg -i trivy.deb
+          rm trivy.deb
+      - run: trivy fs . --debug
+workflows:
+  main:
+    jobs:
+      - pylint
+      - pytest
+      - trivy
