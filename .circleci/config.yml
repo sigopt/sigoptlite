@@ -41,5 +41,5 @@ workflows:
   main:
     jobs:
       - pylint
-      - pytestaux
+      - pytest
       - trivy
