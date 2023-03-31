@@ -8,6 +8,7 @@ import pytest
 
 from sigoptlite.best_assignments import BestAssignmentsLogger
 from sigoptlite.builders import LocalExperimentBuilder
+
 from test.base_test import UnitTestsBase
 from test.constants import DEFAULT_PARAMETERS
 

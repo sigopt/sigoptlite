@@ -13,9 +13,11 @@ from libsigopt.aux.constant import (
   QUANTIZED_EXPERIMENT_PARAMETER_NAME,
   ParameterPriorNames,
 )
+
 from sigoptlite.builders import LocalExperimentBuilder
 from sigoptlite.models import dataclass_to_dict
 from sigoptlite.sources import BaseOptimizationSource
+
 from test.base_test import UnitTestsBase
 from test.constants import (
   DEFAULT_METRICS,

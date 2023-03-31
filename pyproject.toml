@@ -4,3 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 120
+
+[tool.isort]
+combine_star=true
+force_grid_wrap=0
+include_trailing_comma=true
+indent='  '
+known_test="test"
+known_libsigopt="libsigopt"
+known_first_party="sigoptlite"
+known_third_party="numpy"
+line_length=120
+lines_after_imports=2
+sections="STDLIB,THIRDPARTY,LIBSIGOPT,FIRSTPARTY,LOCALFOLDER,TEST"
+use_parentheses=true
+
+# Prefer Vertical Hanging Indent style (3)
+# from package import (
+#   item1,
+#   item2,
+# )
+# https://github.com/timothycrosley/isort#multi-line-output-modes
+multi_line_output=3

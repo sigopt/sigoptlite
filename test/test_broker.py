@@ -5,6 +5,7 @@ import pytest
 
 from sigoptlite.broker import Broker
 from sigoptlite.builders import LocalExperimentBuilder
+
 from test.base_test import UnitTestsBase
 
 

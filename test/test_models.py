@@ -5,6 +5,7 @@ import pytest
 
 from sigoptlite.builders import LocalExperimentBuilder
 from sigoptlite.models import LocalSuggestion
+
 from test.base_test import UnitTestsBase
 
 

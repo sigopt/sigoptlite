@@ -8,6 +8,7 @@ from sigopt.exception import SigOptException
 
 from sigoptlite.driver import LocalDriver
 from sigoptlite.models import FIXED_EXPERIMENT_ID
+
 from test.base_test import UnitTestsBase
 
 

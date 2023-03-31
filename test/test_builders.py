@@ -6,6 +6,7 @@ import random
 import pytest
 
 from sigoptlite.builders import *
+
 from test.base_test import UnitTestsBase
 from test.constants import PARAMETER_CATEGORICAL, PARAMETER_INT
 

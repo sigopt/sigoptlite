@@ -5,6 +5,7 @@ import numpy
 from sigopt import Connection
 
 from sigoptlite.driver import LocalDriver
+
 from test.base_test import UnitTestsBase
 
 
