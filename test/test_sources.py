@@ -5,8 +5,8 @@ import mock
 import pytest
 
 from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME
-from libsigopt.compute.views.rest.search_next_points import SearchNextPoints
-from libsigopt.compute.views.rest.spe_search_next_points import SPESearchNextPoints
+from libsigopt.views.rest.search_next_points import SearchNextPoints
+from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
 from sigoptlite.builders import LocalExperimentBuilder
 from sigoptlite.sources import GPSource, RandomSearchSource, SPESource

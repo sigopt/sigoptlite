@@ -20,13 +20,13 @@ from libsigopt.aux.constant import (
   ParameterPriorNames,
   ParameterTransformationNames,
 )
-from libsigopt.compute.domain import CategoricalDomain
-from libsigopt.compute.views.rest.gp_hyper_opt_multimetric import GpHyperOptMultimetricView
-from libsigopt.compute.views.rest.gp_next_points_categorical import GpNextPointsCategorical
-from libsigopt.compute.views.rest.multisolution_best_assignments import MultisolutionBestAssignments
-from libsigopt.compute.views.rest.search_next_points import SearchNextPoints
-from libsigopt.compute.views.rest.spe_next_points import SPENextPoints
-from libsigopt.compute.views.rest.spe_search_next_points import SPESearchNextPoints
+from libsigopt.views.rest.gp_hyper_opt_multimetric import GpHyperOptMultimetricView
+from libsigopt.views.rest.gp_next_points_categorical import GpNextPointsCategorical
+from libsigopt.views.rest.multisolution_best_assignments import MultisolutionBestAssignments
+from libsigopt.views.rest.random_search_next_points import RandomSearchNextPoints
+from libsigopt.views.rest.search_next_points import SearchNextPoints
+from libsigopt.views.rest.spe_next_points import SPENextPoints
+from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
 from sigoptlite.builders import create_experiment_from_template
 from sigoptlite.models import LocalSuggestion, dataclass_to_dict, replacement_value_if_missing
@@ -420,16 +420,17 @@ class SPESource(BaseOptimizationSource):
 
 class RandomSearchSource(BaseOptimizationSource):
   def next_point(self, _):
-    domain_info = self.form_domain_info(self.experiment)
-    domain = CategoricalDomain(**asdict(domain_info))
-    if domain_info.priors and not domain_info.constraint_list:
-      samples = domain.generate_random_points_according_to_priors(1)
-    else:
-      samples = domain.generate_quasi_random_points_in_domain(1)
+    view_input = {
+      "domain_info": self.form_domain_info(self.experiment),
+      "num_to_sample": 1,
+      "tag": {},
+    }
+    response = RandomSearchNextPoints(view_input).view()
+    suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
 
     task_cost = None
     if self.experiment.is_multitask:
       tasks_costs = [t.cost for t in self.experiment.tasks]
       task_cost = numpy.random.choice(tasks_costs)
 
-    return samples[0], task_cost
+    return suggested_points[0], task_cost
