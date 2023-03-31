@@ -1,0 +1,1 @@
+libsigopt @ git+http://github.com/sigopt/libsigopt@dfa027b5a769689390972563a6fd42bf0afdab6c
