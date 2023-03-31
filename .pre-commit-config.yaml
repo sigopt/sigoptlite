@@ -1,0 +1,46 @@
+ci:
+  skip: [detect-aws-credentials, pylint]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=100]
+      - id: check-ast
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: no-commit-to-branch
+        args: [--branch=main]
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/sigopt/black.git
+    rev: sigopt-22.10.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: env PYTHONPATH=./test pylint
+        language: system
+        types: [python]
+        args: ["-rn", "-sn"]
+      - id: apply-copyright-notice
+        name: Apply the copywright notice
+        description: This hook applies the copyright notice and license disclaimer to all files.
+        entry: tools/check_copyright_and_license_disclaimers.py --fix-in-place
+        language: python
+        types_or:
+          - markdown
+          - python
