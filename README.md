@@ -87,7 +87,7 @@ The following behavior limitations are strictly enforced in SigOpt-Lite.
 
 - SigOpt-Lite can only run one Experiment at a time: the Experiment ID for the sole experiment is `"-1"`.
 - SigOpt-Lite supports no [parallelism](https://docs.sigopt.com/advanced_experimentation/parallelism): an observation must be reported for the open suggestion before creating another unique suggestion. Parallel suggestions can be accessed through an account at [sigopt.com](https://app.sigopt.com/signup) or through the open source SigOpt-Server.
-- SigOpt-Lite does not support [Grid Searh](https://docs.sigopt.com/intro/main-concepts/random_search#grid-search).
+- SigOpt-Lite does not support [Grid Search](https://docs.sigopt.com/intro/main-concepts/random_search#grid-search).
 
 ### Recommended Limitations
 
