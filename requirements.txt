@@ -1,1 +1,1 @@
-libsigopt @ git+http://github.com/sigopt/libsigopt@dfa027b5a769689390972563a6fd42bf0afdab6c
+libsigopt @ git+http://github.com/sigopt/libsigopt@c5c9d0d912718f36e20bbe9960aad802950e87c9
