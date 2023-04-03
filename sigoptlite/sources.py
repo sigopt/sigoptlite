@@ -424,13 +424,13 @@ class RandomSearchSource(BaseOptimizationSource):
       "domain_info": self.form_domain_info(self.experiment),
       "num_to_sample": 1,
       "tag": {},
+      "task_options": [t.cost for t in self.experiment.tasks],
     }
     response = RandomSearchNextPoints(view_input).view()
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
 
     task_cost = None
     if self.experiment.is_multitask:
-      tasks_costs = [t.cost for t in self.experiment.tasks]
-      task_cost = numpy.random.choice(tasks_costs)
+      task_cost = response["task_costs"][0]
 
     return suggested_points[0], task_cost
