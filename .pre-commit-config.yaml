@@ -20,6 +20,12 @@ repos:
         args: [--branch=main]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+  - repo: https://github.com/sigopt/sigopt-tools.git
+    rev: "v0.0.1"
+    hooks:
+      - id: copyright-license-disclaimer
+        args: ["--license=Apache License 2.0", "--owner=Intel Corporation"]
+      - id: sigoptlint-python
   - repo: https://github.com/PyCQA/isort.git
     rev: "5.12.0"
     hooks:
@@ -40,11 +46,3 @@ repos:
         language: system
         types: [python]
         args: ["-rn", "-sn"]
-      - id: apply-copyright-notice
-        name: Apply the copyright notice
-        description: This hook applies the copyright notice and license disclaimer to all files.
-        entry: tools/check_copyright_and_license_disclaimers.py --fix-in-place
-        language: python
-        types_or:
-          - markdown
-          - python
