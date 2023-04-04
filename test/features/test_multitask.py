@@ -47,6 +47,12 @@ class TestMultitask(UnitTestsBase):
 
         with pytest.raises(SigOptException):
             conn.experiments().create(**experiment_meta)
+        msg = "Validation failed for LocalExperimentBuilder: .cost must be greater than 0"
+        assert exception_info.value.args[0] == msg
+        with pytest.raises(SigOptException) as exception_info:
+            conn.experiments().create(**experiment_meta)
+        msg = ".cost must be greater than 0"
+        assert exception_info.value.args[0] == msg
 
     def test_improper_task_costs(self, conn, base_meta):
         experiment_meta = base_meta
