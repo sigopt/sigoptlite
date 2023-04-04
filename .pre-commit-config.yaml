@@ -21,11 +21,12 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/sigopt/sigopt-tools.git
-    rev: "v0.0.1"
+    rev: "v0.0.2"
     hooks:
       - id: copyright-license-disclaimer
         args: ["--license=Apache License 2.0", "--owner=Intel Corporation"]
       - id: sigoptlint-python
+        args: [--include=NoImportLibsigoptComputeRule]
   - repo: https://github.com/PyCQA/isort.git
     rev: "5.12.0"
     hooks:
