@@ -13,77 +13,77 @@ from test.base_test import UnitTestsBase
 
 
 class TestExperiment(UnitTestsBase):
-  conn = Connection(driver=LocalDriver)
+    conn = Connection(driver=LocalDriver)
 
-  @pytest.fixture
-  def experiment_meta(self):
-    return self.get_experiment_feature("default")
+    @pytest.fixture
+    def experiment_meta(self):
+        return self.get_experiment_feature("default")
 
-  def test_driver_basic(self, experiment_meta):
-    e = self.conn.experiments().create(**experiment_meta)
-    assert e.id == FIXED_EXPERIMENT_ID
-    suggestion = self.conn.experiments(e.id).suggestions().create()
+    def test_driver_basic(self, experiment_meta):
+        e = self.conn.experiments().create(**experiment_meta)
+        assert e.id == FIXED_EXPERIMENT_ID
+        suggestion = self.conn.experiments(e.id).suggestions().create()
 
-    values = [{"name": "y1", "value": numpy.random.rand()}]
-    self.conn.experiments(e.id).observations().create(
-      assignments=suggestion.assignments,
-      values=values,
-    )
+        values = [{"name": "y1", "value": numpy.random.rand()}]
+        self.conn.experiments(e.id).observations().create(
+          assignments=suggestion.assignments,
+          values=values,
+        )
 
-    e2 = self.conn.experiments().create(**experiment_meta)
-    fetched_e = self.conn.experiments(e2.id).fetch()
-    assert e2.id == fetched_e.id == FIXED_EXPERIMENT_ID
-    suggestion = self.conn.experiments(e2.id).suggestions().create()
+        e2 = self.conn.experiments().create(**experiment_meta)
+        fetched_e = self.conn.experiments(e2.id).fetch()
+        assert e2.id == fetched_e.id == FIXED_EXPERIMENT_ID
+        suggestion = self.conn.experiments(e2.id).suggestions().create()
 
-    values = [{"name": "y1", "value": numpy.random.rand()}]
-    self.conn.experiments(e2.id).observations().create(
-      suggestion=suggestion.id,
-      values=values,
-    )
+        values = [{"name": "y1", "value": numpy.random.rand()}]
+        self.conn.experiments(e2.id).observations().create(
+          suggestion=suggestion.id,
+          values=values,
+        )
 
-    observations = self.conn.experiments(e2.id).observations().fetch()
-    assert values[0]["value"] == observations.data[0].values[0].value
+        observations = self.conn.experiments(e2.id).observations().fetch()
+        assert values[0]["value"] == observations.data[0].values[0].value
 
-  @pytest.mark.parametrize("bad_id", [None, "12345", "nondigit", {}, 1])
-  def test_bad_experiment_id(self, experiment_meta, bad_id):
-    self.conn.experiments().create(**experiment_meta)
-    suggestion = self.conn.experiments(FIXED_EXPERIMENT_ID).suggestions().create()
-    self.conn.experiments(int(FIXED_EXPERIMENT_ID)).suggestions().create(
-      suggestion=suggestion.id,
-      values=[{"name": "y1", "value": 3}],
-    )
-    with pytest.raises(Exception):
-      self.conn.experiments(bad_id).suggestions().create()
+    @pytest.mark.parametrize("bad_id", [None, "12345", "nondigit", {}, 1])
+    def test_bad_experiment_id(self, experiment_meta, bad_id):
+        self.conn.experiments().create(**experiment_meta)
+        suggestion = self.conn.experiments(FIXED_EXPERIMENT_ID).suggestions().create()
+        self.conn.experiments(int(FIXED_EXPERIMENT_ID)).suggestions().create(
+          suggestion=suggestion.id,
+          values=[{"name": "y1", "value": 3}],
+        )
+        with pytest.raises(Exception):
+            self.conn.experiments(bad_id).suggestions().create()
 
-  def test_progress(self, experiment_meta):
-    num_obs = 3
-    experiment_meta["type"] = "random"
+    def test_progress(self, experiment_meta):
+        num_obs = 3
+        experiment_meta["type"] = "random"
 
-    # Without experiment id
-    e = self.conn.experiments().create(**experiment_meta)
-    assert e.progress.observation_count == e.progress.observation_budget_consumed == 0
-    for i in range(num_obs):
-      suggestion = self.conn.experiments(e.id).suggestions().create()
-      self.conn.experiments(e.id).observations().create(
-        suggestion=suggestion.id,
-        values=[{"name": "y1", "value": i}],
-      )
-      e = self.conn.experiments(e.id).fetch()
-      assert e.progress.observation_count == e.progress.observation_budget_consumed == i + 1
+        # Without experiment id
+        e = self.conn.experiments().create(**experiment_meta)
+        assert e.progress.observation_count == e.progress.observation_budget_consumed == 0
+        for i in range(num_obs):
+            suggestion = self.conn.experiments(e.id).suggestions().create()
+            self.conn.experiments(e.id).observations().create(
+              suggestion=suggestion.id,
+              values=[{"name": "y1", "value": i}],
+            )
+            e = self.conn.experiments(e.id).fetch()
+            assert e.progress.observation_count == e.progress.observation_budget_consumed == i + 1
 
-    experiment_meta = self.get_experiment_feature("multitask")
-    experiment_meta["type"] = "random"
-    e = self.conn.experiments().create(**experiment_meta)
-    assert e.progress.observation_count == e.progress.observation_budget_consumed == 0
-    for i in range(num_obs):
-      suggestion = self.conn.experiments(e.id).suggestions().create()
-      self.conn.experiments(e.id).observations().create(
-        suggestion=suggestion.id,
-        values=[{"name": "y1", "value": i}],
-      )
-      e = self.conn.experiments(e.id).fetch()
-    assert e.progress.observation_count == num_obs
-    assert e.progress.observation_budget_consumed <= e.progress.observation_count
+        experiment_meta = self.get_experiment_feature("multitask")
+        experiment_meta["type"] = "random"
+        e = self.conn.experiments().create(**experiment_meta)
+        assert e.progress.observation_count == e.progress.observation_budget_consumed == 0
+        for i in range(num_obs):
+            suggestion = self.conn.experiments(e.id).suggestions().create()
+            self.conn.experiments(e.id).observations().create(
+              suggestion=suggestion.id,
+              values=[{"name": "y1", "value": i}],
+            )
+            e = self.conn.experiments(e.id).fetch()
+        assert e.progress.observation_count == num_obs
+        assert e.progress.observation_budget_consumed <= e.progress.observation_count
 
   def test_experiment_missing_parameters(self, experiment_meta):
     del experiment_meta["parameters"]
@@ -120,18 +120,18 @@ class TestExperiment(UnitTestsBase):
     msg = "Validation failed for LocalExperimentBuilder: Invalid type for .name: 12 - expected type string"
     assert exception_info.value.args[0] == msg
 
-  def test_experiment_fetch_before_create(self):
-    new_conn = Connection(driver=LocalDriver)
-    with pytest.raises(SigOptException) as exception_info:
-      new_conn.experiments(FIXED_EXPERIMENT_ID).fetch()
-    msg = "Need to create an experiment first before fetching one"
-    assert exception_info.value.args[0] == msg
+    def test_experiment_fetch_before_create(self):
+        new_conn = Connection(driver=LocalDriver)
+        with pytest.raises(SigOptException) as exception_info:
+            new_conn.experiments(FIXED_EXPERIMENT_ID).fetch()
+        msg = "Need to create an experiment first before fetching one"
+        assert exception_info.value.args[0] == msg
 
-  def test_experiment_no_budget(self):
-    experiment_meta = self.get_experiment_feature("default")
-    experiment_meta.pop("observation_budget")
-    experiment = self.conn.experiments().create(**experiment_meta)
-    assert experiment.observation_budget is None
+    def test_experiment_no_budget(self):
+        experiment_meta = self.get_experiment_feature("default")
+        experiment_meta.pop("observation_budget")
+        experiment = self.conn.experiments().create(**experiment_meta)
+        assert experiment.observation_budget is None
 
   @pytest.mark.parametrize("parallel_bandwidth", [-1, 0, 2, 29])
   def test_experiment_parallel_bandwidth_incompatible(self, parallel_bandwidth):
