@@ -54,7 +54,7 @@ class TestMultitask(UnitTestsBase):
 
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = ".cost must be greather than 0"
+    msg = ".cost must be greater than 0"
     assert exception_info.value.args[0] == msg
 
   def test_single_task_forbidden(self, conn, base_meta):
