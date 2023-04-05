@@ -187,7 +187,7 @@ class TestSingleMetricObservationEndpoint(ObservationEndpointTest):
         suggestion=suggestion.id,
         values=[{"name": "y1", "value": 2.6, "foo": "bar"}],
       )
-    msg = "Invalid input for MetricEvaluationBuilder"
+    msg = "Invalid input for sigoptlite metric evaluation"
     assert msg in exception_info.value.args[0]
 
   def test_create_observation_with_failure_no_value(self, connection, experiment, suggestion):

@@ -89,35 +89,35 @@ class TestExperiment(UnitTestsBase):
     del experiment_meta["parameters"]
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "Missing required json key `parameters` in sigoptlite experiment:"
+    msg = 'Validation failed for sigoptlite experiment: Missing required json key "parameters" in'
     assert exception_info.value.args[0].startswith(msg)
 
   def test_experiment_parameters_empty_list(self, experiment_meta):
     experiment_meta["parameters"] = []
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "The length of .parameters must be greater than or equal to 1"
+    msg = "Validation failed for sigoptlite experiment: The length of .parameters must be greater than or equal to 1"
     assert exception_info.value.args[0] == msg
 
   def test_experiment_missing_metrics(self, experiment_meta):
     del experiment_meta["metrics"]
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "Missing required json key `metrics` in sigoptlite experiment:"
+    msg = 'Validation failed for sigoptlite experiment: Missing required json key "metrics" in'
     assert exception_info.value.args[0].startswith(msg)
 
   def test_experiment_metrics_empty_list(self, experiment_meta):
     experiment_meta["metrics"] = []
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "The length of .metrics must be greater than or equal to 1"
+    msg = "Validation failed for sigoptlite experiment: The length of .metrics must be greater than or equal to 1"
     assert exception_info.value.args[0] == msg
 
   def test_experiment_bad_experiment_name_type(self, experiment_meta):
     experiment_meta["name"] = 12
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "Invalid type for .name, expected type string"
+    msg = "Validation failed for sigoptlite experiment: Invalid type for .name: 12 - expected type string"
     assert exception_info.value.args[0] == msg
 
   def test_experiment_fetch_before_create(self):
@@ -142,5 +142,5 @@ class TestExperiment(UnitTestsBase):
     if parallel_bandwidth > 1:
       msg = "sigoptlite experiment must have parallel_bandwidth == 1"
     else:
-      msg = ".parallel_bandwidth must be greater than or equal to 1"
+      msg = "Validation failed for sigoptlite experiment: .parallel_bandwidth must be greater than or equal to 1"
     assert exception_info.value.args[0] == msg
