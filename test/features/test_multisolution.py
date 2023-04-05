@@ -19,7 +19,7 @@ class TestMultisolutionExperiment(UnitTestsBase):
     experiment_meta["num_solutions"] = bad_num_sol
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**experiment_meta)
-    msg = "Validation failed for LocalExperimentBuilder: .num_solutions must be greater than or equal to 1"
+    msg = "Validation failed for sigoptlite experiment: .num_solutions must be greater than or equal to 1"
     assert exception_info.value.args[0] == msg
 
   def test_multisolution_too_many_num_solutions(self):

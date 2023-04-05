@@ -22,13 +22,15 @@ def create_experiment_from_template(experiment_template, **kwargs):
 
 
 class BuilderBase(object):
+  cls_name = "sigoptlite base"
+
   def __new__(cls, input_dict, **kwargs):
     try:
       cls.validate_input_dict(input_dict)
     except AssertionError as e:
-      raise ValueError(f"Invalid input for {cls.__name__} {e}") from e
+      raise ValueError(f"Invalid input for {cls.cls_name} {e}") from e
     except SigoptValidationError as e:
-      raise ValueError(f"Validation failed for {cls.__name__}: {e}") from e
+      raise ValueError(f"Validation failed for {cls.cls_name}: {e}") from e
 
     local_object = cls.create_object(**input_dict)
     cls.validate_object(local_object, **kwargs)
@@ -85,6 +87,8 @@ class LocalExperimentBuilder(BuilderBase):
 
 
 class LocalParameterBuilder(BuilderBase):
+  cls_name = "sigoptlite parameter"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert isinstance(input_dict["name"], str)
@@ -112,6 +116,8 @@ class LocalParameterBuilder(BuilderBase):
 
 
 class LocalMetricBuilder(BuilderBase):
+  cls_name = "sigoptlite metric"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert isinstance(input_dict["name"], str)
@@ -127,6 +133,8 @@ class LocalMetricBuilder(BuilderBase):
 
 
 class LocalConditionalBuilder(BuilderBase):
+  cls_name = "sigoptlite conditional"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert set(input_dict.keys()) == {"name", "values"}
@@ -142,6 +150,8 @@ class LocalConditionalBuilder(BuilderBase):
 
 
 class LocalTaskBuilder(BuilderBase):
+  cls_name = "sigoptlite task"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert set(input_dict.keys()) == {"name", "cost"}
@@ -159,6 +169,8 @@ class LocalTaskBuilder(BuilderBase):
 
 
 class LocalLinearConstraintBuilder(BuilderBase):
+  cls_name = "sigoptlite linear constraint"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert input_dict.keys() == {"type", "terms", "threshold"}
@@ -172,6 +184,8 @@ class LocalLinearConstraintBuilder(BuilderBase):
 
 
 class LocalBoundsBuilder(BuilderBase):
+  cls_name = "sigoptlite bounds"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert set(input_dict.keys()) == {"min", "max"}
@@ -189,6 +203,8 @@ class LocalBoundsBuilder(BuilderBase):
 
 
 class LocalParameterPriorBuilder(BuilderBase):
+  cls_name = "sigoptlite parameter prior"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert input_dict["name"] in ["beta", "normal"]
@@ -214,6 +230,8 @@ class LocalParameterPriorBuilder(BuilderBase):
 
 
 class LocalConstraintTermBuilder(BuilderBase):
+  cls_name = "sigoptlite constraint"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert set(input_dict.keys()) == {"name", "weight"}
@@ -226,6 +244,8 @@ class LocalConstraintTermBuilder(BuilderBase):
 
 
 class LocalObservationBuilder(BuilderBase):
+  cls_name = "sigoptlite observation"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     validate_against_schema(input_dict, OBSERVATION_CREATE_SCHEMA)
@@ -247,6 +267,8 @@ class LocalObservationBuilder(BuilderBase):
 
 
 class MetricEvaluationBuilder(BuilderBase):
+  cls_name = "sigoptlite metric evaluation"
+
   @classmethod
   def validate_input_dict(cls, input_dict):
     assert isinstance(input_dict["name"], str)

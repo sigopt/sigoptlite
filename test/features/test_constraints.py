@@ -63,7 +63,7 @@ class TestParameterConstraints(UnitTestsBase):
     with pytest.raises(SigOptException) as exception_info:
       self.conn.experiments().create(**invalid_type_meta)
     msg = (
-      "Validation failed for LocalExperimentBuilder: strictly_less_than is not one "
+      "Validation failed for sigoptlite experiment: strictly_less_than is not one "
       "of the allowed values: greater_than, less_than"
     )
     assert exception_info.value.args[0] == msg

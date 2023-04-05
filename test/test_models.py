@@ -140,7 +140,7 @@ class TestLocalExperiment(LocalExperimentBase):
     if parallel_bandwidth > 1:
       msg = "sigoptlite experiment must have parallel_bandwidth == 1"
     else:
-      msg = "Validation failed for LocalExperimentBuilder: .parallel_bandwidth must be greater than or equal to 1"
+      msg = "Validation failed for sigoptlite experiment: .parallel_bandwidth must be greater than or equal to 1"
     assert exception_info.value.args[0] == msg
 
   def test_experiment_with_constraints(self):

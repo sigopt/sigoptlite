@@ -35,7 +35,7 @@ class TestMultitask(UnitTestsBase):
     experiment_meta["tasks"] = tasks
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = "Validation failed for LocalExperimentBuilder: .cost must be greater than 0"
+    msg = "Validation failed for sigoptlite experiment: .cost must be greater than 0"
     assert exception_info.value.args[0] == msg
 
   def test_improper_tasks_cost_greater_than_one(self, conn, base_meta):
@@ -44,7 +44,7 @@ class TestMultitask(UnitTestsBase):
     experiment_meta["tasks"] = tasks
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = "Validation failed for LocalExperimentBuilder: .cost must be less than or equal to 1"
+    msg = "Validation failed for sigoptlite experiment: .cost must be less than or equal to 1"
     assert exception_info.value.args[0] == msg
 
   def test_improper_tasks_cost_none_equal_one(self, conn, base_meta):
@@ -62,7 +62,7 @@ class TestMultitask(UnitTestsBase):
     experiment_meta["tasks"] = tasks
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = "Validation failed for LocalExperimentBuilder: Invalid type for .tasks[0]: 0.1 - expected type object"
+    msg = "Validation failed for sigoptlite experiment: Invalid type for .tasks[0]: 0.1 - expected type object"
     assert exception_info.value.args[0] == msg
 
   def test_improper_tasks_no_cost(self, conn, base_meta):
@@ -71,7 +71,7 @@ class TestMultitask(UnitTestsBase):
     experiment_meta["tasks"] = tasks
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = """Validation failed for LocalExperimentBuilder: Missing required json key "cost" in: {"name": "cheap"}"""
+    msg = """Validation failed for sigoptlite experiment: Missing required json key "cost" in: {"name": "cheap"}"""
     assert exception_info.value.args[0] == msg
 
   def test_improper_tasks_same_names(self, conn, base_meta):
@@ -97,7 +97,7 @@ class TestMultitask(UnitTestsBase):
     experiment_meta["tasks"] = [dict(name="cheap", cost=-0.1), dict(name="expensive", cost=1)]
     with pytest.raises(SigOptException) as exception_info:
       conn.experiments().create(**experiment_meta)
-    msg = "Validation failed for LocalExperimentBuilder: .cost must be greater than 0"
+    msg = "Validation failed for sigoptlite experiment: .cost must be greater than 0"
     assert exception_info.value.args[0] == msg
 
   def test_single_task_forbidden(self, conn, base_meta):

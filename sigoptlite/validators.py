@@ -264,7 +264,6 @@ def validate_experiment(experiment, cls_name):
 
 
 def validate_parameter(parameter):
-  # categorical parameter
   if parameter.is_categorical:
     if not len(parameter.categorical_values) > 1:
       raise ValueError(
@@ -276,7 +275,6 @@ def validate_parameter(parameter):
     if parameter.bounds:
       raise ValueError(f"Categorical parameter should not have bounds: {parameter.bounds}")
 
-  # parameter with grid
   if parameter.grid:
     if not len(parameter.grid) > 1:
       raise ValueError(
@@ -287,7 +285,6 @@ def validate_parameter(parameter):
     if not get_num_distinct_elements(parameter.grid) == len(parameter.grid):
       raise ValueError(f"Grid values should be unique: {parameter.grid}")
 
-  # log transformation
   if parameter.has_transformation:
     if not parameter.is_double:
       raise ValueError("Transformation only applies to parameters type of double")
@@ -296,7 +293,6 @@ def validate_parameter(parameter):
     if parameter.grid and min(parameter.grid) <= 0:
       raise ValueError("Invalid grid values for log-transformation: values must be positive")
 
-  # parameter priors
   if parameter.has_prior:
     if not parameter.is_double:
       raise ValueError("Prior only applies to parameters type of double")
