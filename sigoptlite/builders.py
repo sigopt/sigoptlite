@@ -21,7 +21,6 @@ def create_experiment_from_template(experiment_template, **kwargs):
   return LocalExperimentBuilder(experiment_meta)
 
 
-
 class BuilderBase(object):
   def __new__(cls, input_dict, **kwargs):
     try:
@@ -83,7 +82,6 @@ class LocalExperimentBuilder(BuilderBase):
   @classmethod
   def validate_object(cls, experiment):
     validate_experiment(experiment, cls.cls_name)
-
 
 
 class LocalParameterBuilder(BuilderBase):

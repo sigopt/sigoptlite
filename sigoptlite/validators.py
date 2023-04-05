@@ -195,7 +195,6 @@ def get_num_distinct_elements(lst):
   return len(set(lst))
 
 
-
 def validate_experiment(experiment, cls_name):
   validate_parameters_for_experiment(experiment)
   validate_metrics_for_experiment(experiment)
@@ -264,7 +263,6 @@ def validate_experiment(experiment, cls_name):
     check_constraint_feasibility_for_experiment(experiment)
 
 
-
 def validate_parameter(parameter):
   # categorical parameter
   if parameter.is_categorical:
@@ -311,7 +309,6 @@ def validate_parameter(parameter):
         raise ValueError(f"parameter.prior.mean {parameter.prior.mean} must be within bounds {parameter.bounds}")
     if not (parameter.prior.is_normal ^ parameter.prior.is_beta):
       raise ValueError(f"{parameter.prior} must be either normal or beta")
-
 
 
 def validate_observation(observation, experiment):
@@ -363,7 +360,6 @@ def check_all_conditional_values_satisfied_for_experiment(experiment):
     raise ValueError("Need at least one parameter that satisfies each conditional value")
 
 
-
 def check_constraint_feasibility_for_experiment(experiment):
   def parse_constraints_to_halfspaces(constraints, parameters):
     constrained_parameters_names = []
@@ -403,7 +399,6 @@ def check_constraint_feasibility_for_experiment(experiment):
   _, _, feasibility = find_interior_point(halfspaces)
   if not feasibility:
     raise ValueError("Infeasible constraints")
-
 
 
 def validate_constraints_for_experiment(experiment):
@@ -465,7 +460,6 @@ def validate_constraints_for_experiment(experiment):
       raise ValueError("Constraint functions cannot mix integers and doubles. One or the other only.")
 
 
-
 def validate_tasks_for_experiment(experiment, class_name):
   if len(experiment.tasks) < 2:
     raise ValueError(f"For multitask {class_name}, at least 2 tasks must be present")
@@ -478,7 +472,6 @@ def validate_tasks_for_experiment(experiment, class_name):
     raise ValueError(f"For multitask {class_name}, all task costs must be distinct")
   if 1 not in costs:
     raise ValueError(f"For multitask {class_name}, exactly one task must have cost == 1 (none present).")
-
 
 
 def validate_conditionals_for_experiment(experiment):
@@ -497,19 +490,16 @@ def validate_conditionals_for_experiment(experiment):
   check_all_conditional_values_satisfied_for_experiment(experiment)
 
 
-
 def validate_metrics_for_experiment(experiment):
   metric_names = [m.name for m in experiment.metrics]
   if not len(metric_names) == get_num_distinct_elements(metric_names):
     raise ValueError(f"No duplicate metrics are allowed: {metric_names}")
 
 
-
 def validate_parameters_for_experiment(experiment):
   param_names = [p.name for p in experiment.parameters]
   if not len(param_names) == get_num_distinct_elements(param_names):
     raise ValueError(f"No duplicate parameters are allowed: {param_names}")
-
 
 
 def observation_must_have_parameter(observation, parameter):
@@ -536,14 +526,12 @@ def observation_must_have_parameter(observation, parameter):
       raise ValueError(f"Assignment must be positive for log-transformed parameter {parameter.name}")
 
 
-
 def observation_does_not_have_parameter(observation, parameter):
   if parameter.name in observation.assignments:
     raise ValueError(
       f"Parameter {parameter.name} does not satisfy conditions. "
       f"Observation assignments: {observation.assignments} is invalid."
     )
-
 
 
 def validate_observation_conditionals(observation, conditionals):
@@ -557,7 +545,6 @@ def validate_observation_conditionals(observation, conditionals):
         f"Conditional parameter {conditional.name} must have one of following options: "
         f"{expected_conditional_options} instead of {conditional_value}"
       )
-
 
 
 def validate_observation_tasks(observation, tasks):
