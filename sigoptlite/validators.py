@@ -11,9 +11,10 @@ from libsigopt.aux.constant import (
   ConstraintType,
   ParameterTransformationNames,
 )
+from libsigopt.aux.errors import InvalidTypeError
 from libsigopt.aux.geometry_utils import find_interior_point
 from libsigopt.aux.utils import is_integer, is_number
-from libsigopt.aux.errors import InvalidTypeError
+
 from sigoptlite.models import parameter_conditions_satisfied
 
 
@@ -296,9 +297,7 @@ def validate_parameter(parameter):
       raise ValueError(f"Grid values should be unique: {parameter.grid}")
     if any(not check_type_for_parameter_value(parameter, p) for p in parameter.grid):
       invalid_value = next(p for p in parameter.grid if not check_type_for_parameter_value(parameter, p))
-      raise ValueError(
-        f"Grid value {invalid_value} is not from the same type as {parameter.name} ({parameter.type})"
-      )
+      raise ValueError(f"Grid value {invalid_value} is not from the same type as {parameter.name} ({parameter.type})")
 
   if parameter.has_transformation:
     if not parameter.is_double:
