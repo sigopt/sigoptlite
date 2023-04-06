@@ -46,7 +46,7 @@ class BaseOptimizationSource(object):
   def call_libsigopt_views(cls, view_endpoint, view_input):
     try:
       return view_endpoint(view_input).call()
-    except (ValueError, IndexError, numpy.linAlg.linAlgError) as e:
+    except (ValueError, IndexError, numpy.linalg.LinAlgError) as e:
       raise SigoptComputeError(e) from e
 
   def apply_transformations_to_experiment(self, original_experiment):
