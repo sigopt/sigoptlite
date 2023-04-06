@@ -580,6 +580,6 @@ def check_type_for_parameter_value(parameter, value):
   elif parameter.is_double:
     return is_number(value)
   elif parameter.is_categorical:
-    return is_number(value) or isinstance(value, str)
+    return isinstance(value, str)
   else:
     raise InvalidTypeError(f"Parameter value {value} is not the same as parameter.type {parameter.type}")
