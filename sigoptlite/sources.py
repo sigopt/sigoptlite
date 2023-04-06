@@ -18,6 +18,7 @@ from libsigopt.aux.constant import (
   ParameterPriorNames,
   ParameterTransformationNames,
 )
+from libsigopt.aux.errors import SigoptComputeError
 from libsigopt.views.rest.gp_hyper_opt_multimetric import GpHyperOptMultimetricView
 from libsigopt.views.rest.gp_next_points_categorical import GpNextPointsCategorical
 from libsigopt.views.rest.multisolution_best_assignments import MultisolutionBestAssignments
@@ -40,6 +41,13 @@ class BaseOptimizationSource(object):
 
   def next_point(self, observations):
     raise NotImplementedError()
+
+  @classmethod
+  def call_libsigopt_views(cls, view_endpoint, view_input):
+    try:
+      return view_endpoint(view_input).call()
+    except (ValueError, IndexError, numpy.linalg.LinAlgError) as e:
+      raise SigoptComputeError(e) from e
 
   def apply_transformations_to_experiment(self, original_experiment):
     if not original_experiment.is_conditional:
@@ -143,7 +151,7 @@ class BaseOptimizationSource(object):
       "tag": {},
       "task_options": [t.cost for t in experiment.tasks],
     }
-    response = MultisolutionBestAssignments(view_input).view()
+    response = cls.call_libsigopt_views(MultisolutionBestAssignments, view_input)
     best_indices = [int(i) for i in response["best_indices"] if i is not None]
     return best_indices
 
@@ -335,7 +343,7 @@ class GPSource(BaseOptimizationSource):
       "metrics_info": self.form_metrics_info(self.experiment),
       "task_options": [t.cost for t in self.experiment.tasks],
     }
-    response = GpHyperOptMultimetricView(view_input).view()
+    response = self.call_libsigopt_views(GpHyperOptMultimetricView, view_input)
     self.hyperparameters = response["hyperparameter_dict"]
     return self.hyperparameters
 
@@ -354,10 +362,11 @@ class GPSource(BaseOptimizationSource):
       "task_options": [t.cost for t in self.experiment.tasks],
     }
     if self.experiment.is_search or self.experiment.is_multisolution:
-      response = SearchNextPoints(view_input).view()
+      view_endpoint = SearchNextPoints
     else:
-      response = GpNextPointsCategorical(view_input).view()
+      view_endpoint = GpNextPointsCategorical
 
+    response = self.call_libsigopt_views(view_endpoint, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
     task_cost = None
     if self.experiment.is_multitask:
@@ -404,11 +413,12 @@ class SPESource(BaseOptimizationSource):
       "task_options": [t.cost for t in self.experiment.tasks],
     }
     if self.experiment.is_search or self.experiment.is_multisolution:
-      response = SPESearchNextPoints(view_input).view()
+      view_endpoint = SPESearchNextPoints
     else:
-      response = SPENextPoints(view_input).view()
-    suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
+      view_endpoint = SPENextPoints
 
+    response = self.call_libsigopt_views(view_endpoint, view_input)
+    suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
     task_cost = None
     if self.experiment.is_multitask:
       task_cost = response["task_costs"][0]
@@ -424,7 +434,7 @@ class RandomSearchSource(BaseOptimizationSource):
       "tag": {},
       "task_options": [t.cost for t in self.experiment.tasks],
     }
-    response = RandomSearchNextPoints(view_input).view()
+    response = self.call_libsigopt_views(RandomSearchNextPoints, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
 
     task_cost = None
