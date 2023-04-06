@@ -7,6 +7,7 @@ from typing import List
 from libsigopt.aux.constant import (
   CATEGORICAL_EXPERIMENT_PARAMETER_NAME,
   DOUBLE_EXPERIMENT_PARAMETER_NAME,
+  INT_EXPERIMENT_PARAMETER_NAME,
   ParameterPriorNames,
 )
 
@@ -95,6 +96,10 @@ class LocalParameter:
   grid: List[float] = field(default_factory=list)
   prior: LocalParameterPrior = None
   transformation: str = None
+
+  @property
+  def is_int(self):
+    return self.type == INT_EXPERIMENT_PARAMETER_NAME
 
   @property
   def is_categorical(self):
