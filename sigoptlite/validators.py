@@ -12,7 +12,8 @@ from libsigopt.aux.constant import (
   ParameterTransformationNames,
 )
 from libsigopt.aux.geometry_utils import find_interior_point
-from libsigopt.aux.utils import is_number, is_integer
+from libsigopt.aux.utils import is_integer, is_number
+
 from sigoptlite.models import parameter_conditions_satisfied
 
 
@@ -572,6 +573,7 @@ def validate_observation_tasks(observation, tasks):
       f"Task cost {obs_task_costs} is not a valid cost for this experiment. Must be one of the following:"
       f" {expected_task_costs}"
     )
+
 
 def check_type_for_parameter_value(parameter, value):
   if parameter.is_int:

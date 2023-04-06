@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: Apache License 2.0
 import random
-import numpy
 
+import numpy
 import pytest
 
 from sigoptlite.builders import *
