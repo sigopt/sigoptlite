@@ -61,9 +61,8 @@ class BaseOptimizationSource(object):
 
   def get_suggestion(self, observations):
     suggested_points, suggested_task_cost = self.next_point(observations)
-
     if len(suggested_points) == 0:
-      raise ValueError("Was unable to generate a suggestion")
+      raise SigoptComputeError("Was unable to generate a suggestion")
 
     assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
     task = self.get_task_by_cost(self.experiment, suggested_task_cost) if self.experiment.is_multitask else None

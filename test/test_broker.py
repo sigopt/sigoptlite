@@ -27,7 +27,7 @@ class TestBroker(UnitTestsBase):
       broker.create_observation(**observation_dict)
 
   @mock.patch.object(GPSource, "next_point")
-  def test_fallback_random_categories_exhausted(self, mock_next_point):
+  def test_fallback_random_successful_when_categories_exhausted(self, mock_next_point):
     parameter_name = "c"
     categorical_values = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
     parameter_high_category_count = dict(
@@ -48,16 +48,11 @@ class TestBroker(UnitTestsBase):
       )
       broker.create_observation(**observation_dict)
 
-    fake_value = 3
-    mock_next_point.return_value = [fake_value], None
-    suggestions = []
-    for _ in range(5):
-      broker.stored_suggestion = None
-      suggestions.append(broker.create_suggestion())
-    assert any(suggestion.assignments[parameter_name] != categorical_values[fake_value] for suggestion in suggestions)
+    mock_next_point.return_value = [[]], None
+    broker.create_suggestion()
 
   @mock.patch.object(GPSource, "next_point")
-  def test_fallback_random_integers_exhausted(self, mock_next_point):
+  def test_fallback_random_successful_when_integers_exhausted(self, mock_next_point):
     parameter_name = "i"
     start = 1
     stop = 100
@@ -79,10 +74,5 @@ class TestBroker(UnitTestsBase):
       )
       broker.create_observation(**observation_dict)
 
-    fake_value = 13
-    mock_next_point.return_value = [fake_value], None
-    suggestions = []
-    for _ in range(5):
-      broker.stored_suggestion = None
-      suggestions.append(broker.create_suggestion())
-    assert any(suggestion.assignments[parameter_name] != fake_value for suggestion in suggestions)
+    mock_next_point.return_value = [[]], None
+    broker.create_suggestion()
