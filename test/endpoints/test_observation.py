@@ -75,6 +75,16 @@ class TestObservationCreate(ObservationEndpointTest):
     observation = list(observations.iterate_pages())[0]
     assert observation.values[0].value_stddev == value_stddev
 
+  def test_make_observation_with_none_variance(self, connection, experiment, suggestion):
+    values = [{"name": "y1", "value": 0, "value_stddev": None}]
+    connection.experiments(experiment.id).observations().create(
+      assignments=suggestion.assignments,
+      values=values,
+    )
+    observations = connection.experiments(experiment.id).observations().fetch()
+    observation = list(observations.iterate_pages())[0]
+    assert observation.values[0].value_stddev is None
+
   def test_observation_create_before_experiment_create(self, connection):
     with pytest.raises(SigOptException) as exception_info:
       connection.experiments(FIXED_EXPERIMENT_ID).observations().create()
