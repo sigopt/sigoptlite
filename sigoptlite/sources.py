@@ -60,8 +60,12 @@ class BaseOptimizationSource(object):
     return self.remove_conditional_transformation_from_suggestion(self._original_experiment, source_suggestion)
 
   def get_suggestion(self, observations):
-    suggested_point, suggested_task_cost = self.next_point(observations)
-    assignments = self.make_assignments_from_point(self.experiment, suggested_point)
+    suggested_points, suggested_task_cost = self.next_point(observations)
+
+    if len(suggested_points) == 0:
+      raise ValueError("Was unable to generate a suggestion")
+
+    assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
     task = self.get_task_by_cost(self.experiment, suggested_task_cost) if self.experiment.is_multitask else None
     source_suggestion = LocalSuggestion(assignments=assignments, task=task)
     return self.remove_transformations_from_source_suggestion(source_suggestion)
@@ -372,7 +376,7 @@ class GPSource(BaseOptimizationSource):
     if self.experiment.is_multitask:
       task_cost = response["task_costs"][0]
 
-    return suggested_points[0], task_cost
+    return suggested_points, task_cost
 
   @classmethod
   def get_default_hyperparameters(cls, experiment):
@@ -423,7 +427,7 @@ class SPESource(BaseOptimizationSource):
     if self.experiment.is_multitask:
       task_cost = response["task_costs"][0]
 
-    return suggested_points[0], task_cost
+    return suggested_points, task_cost
 
 
 class RandomSearchSource(BaseOptimizationSource):
@@ -441,4 +445,4 @@ class RandomSearchSource(BaseOptimizationSource):
     if self.experiment.is_multitask:
       task_cost = response["task_costs"][0]
 
-    return suggested_points[0], task_cost
+    return suggested_points, task_cost

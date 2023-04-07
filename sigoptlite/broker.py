@@ -88,7 +88,12 @@ class Broker(object):
     else:
       source = GPSource(self.experiment)
       self.hyperparameters = source.update_hyperparameters(self.observations, self.hyperparameters)
-    suggestion_data = source.get_suggestion(self.observations)
+
+    # Try and generate a suggestion, otherwise fallback to random search
+    try:
+      suggestion_data = source.get_suggestion(self.observations)
+    except ValueError:
+      suggestion_data = RandomSearchSource(self.experiment).get_suggestion(self.observations)
 
     suggestion_to_serve = LocalSuggestion(
       id=str(self.suggestion_id),

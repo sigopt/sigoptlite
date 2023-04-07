@@ -2,16 +2,18 @@
 #
 # SPDX-License-Identifier: Apache License 2.0
 import mock
+import numpy
 import pytest
 
 from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME
 from libsigopt.views.rest.search_next_points import SearchNextPoints
 from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
-from sigoptlite.builders import LocalExperimentBuilder
+from sigoptlite.builders import LocalExperimentBuilder, LocalObservationBuilder
 from sigoptlite.sources import GPSource, RandomSearchSource, SPESource
 
 from test.base_test import UnitTestsBase
+from test.constants import DEFAULT_METRICS, PARAMETER_CATEGORICAL
 
 
 class TestRandomSearch(UnitTestsBase):
@@ -70,8 +72,28 @@ class TestGPNextPoints(UnitTestsBase):
     observations = self.make_random_observations(experiment, 5)
     source = GPSource(experiment)
     point, task_cost = source.next_point(observations)
-    assert point == fake_point
+    assert point == [fake_point]
     assert task_cost is None
+
+  def test_space_exhausted_empty_next_points(self):
+    experiment_meta = dict(
+      parameters=[PARAMETER_CATEGORICAL],
+      metrics=DEFAULT_METRICS,
+    )
+    experiment = LocalExperimentBuilder(experiment_meta)
+    observations = []
+    for category in PARAMETER_CATEGORICAL["categorical_values"]:
+      observation_dict = dict(
+        assignments={PARAMETER_CATEGORICAL["name"]: category},
+        values=[dict(name=experiment.metrics[0].name, value=numpy.random.rand(), value_stddev=0)],
+      )
+      observation = LocalObservationBuilder(observation_dict, experiment=experiment)
+      observations.append(observation)
+
+    next_points, _ = GPSource(experiment).next_point(observations)
+    assert next_points == []
+    with pytest.raises(ValueError):
+      GPSource(experiment).get_suggestion(observations)
 
 
 class TestSPENextPoints(UnitTestsBase):
@@ -92,5 +114,5 @@ class TestSPENextPoints(UnitTestsBase):
     observations = self.make_random_observations(experiment, 5)
     source = SPESource(experiment)
     point, task_cost = source.next_point(observations)
-    assert point == fake_point
+    assert point == [fake_point]
     assert task_cost is None
