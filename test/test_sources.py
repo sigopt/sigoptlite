@@ -6,6 +6,7 @@ import numpy
 import pytest
 
 from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME
+from libsigopt.aux.errors import SigoptComputeError
 from libsigopt.views.rest.search_next_points import SearchNextPoints
 from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
@@ -92,7 +93,7 @@ class TestGPNextPoints(UnitTestsBase):
 
     next_points, _ = GPSource(experiment).next_point(observations)
     assert next_points == []
-    with pytest.raises(ValueError):
+    with pytest.raises(SigoptComputeError):
       GPSource(experiment).get_suggestion(observations)
 
 
