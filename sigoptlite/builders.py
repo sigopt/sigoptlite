@@ -273,11 +273,13 @@ class MetricEvaluationBuilder(BuilderBase):
   def validate_input_dict(cls, input_dict):
     assert isinstance(input_dict["name"], str)
     assert isinstance(input_dict["value"], (int, float))
-    if "value_stddev" in input_dict:
+    value_stddev = input_dict.get("value_stddev", None)
+    if value_stddev is not None:
       assert isinstance(input_dict["value_stddev"], (int, float))
       assert input_dict["value_stddev"] >= 0
       assert set(input_dict.keys()) == {"name", "value", "value_stddev"}
     else:
+      input_dict.pop("value_stddev", None)
       assert set(input_dict.keys()) == {"name", "value"}
 
   @classmethod
