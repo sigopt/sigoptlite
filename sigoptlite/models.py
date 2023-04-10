@@ -71,10 +71,10 @@ class LocalTask:
 @dataclass(frozen=True, kw_only=True)
 class LocalParameterPrior:
   name: str
-  mean: float = None
-  scale: float = None
-  shape_a: float = None
-  shape_b: float = None
+  mean: float | None = None
+  scale: float | None = None
+  shape_a: float | None = None
+  shape_b: float | None = None
 
   @property
   def is_beta(self):
@@ -89,12 +89,12 @@ class LocalParameterPrior:
 class LocalParameter:
   name: str
   type: str
-  bounds: LocalBounds = None
+  bounds: LocalBounds | None = None
   categorical_values: List[LocalCategoricalValue] = field(default_factory=list)
   conditions: List[LocalCondition] = field(default_factory=list)
   grid: List[float] = field(default_factory=list)
-  prior: LocalParameterPrior = None
-  transformation: str = None
+  prior: LocalParameterPrior | None = None
+  transformation: str | None = None
 
   @property
   def is_categorical(self):
@@ -137,7 +137,7 @@ class LocalMetric:
   name: str
   objective: str = "maximize"
   strategy: str = "optimize"
-  threshold: float = None
+  threshold: float | None = None
 
   @property
   def is_optimized(self):
@@ -160,9 +160,9 @@ class LocalExperiment:
   conditionals: List[LocalConditional] = field(default_factory=list)
   linear_constraints: List[LocalLinearConstraint] = field(default_factory=list)
   metadata = None
-  name: str = None
+  name: str | None = None
   num_solutions: int = 1
-  observation_budget: int = None
+  observation_budget: int | None = None
   parallel_bandwidth: int = 1
   tasks: List[LocalTask] = field(default_factory=list)
   type: str = "offline"
@@ -220,7 +220,7 @@ class LocalAssignments(dict):
 class MetricEvaluation:
   name: str
   value: float
-  value_stddev: float = None
+  value_stddev: float | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -228,7 +228,7 @@ class LocalObservation:
   assignments: LocalAssignments
   metric_evaluations: dict = field(default_factory=dict)
   failed: bool = False
-  task: LocalTask = None
+  task: LocalTask | None = None
 
   def get_client_observation(self, experiment):
     return dict(
@@ -272,8 +272,8 @@ class LocalObservation:
 @dataclass(frozen=True, kw_only=True)
 class LocalSuggestion:
   assignments: LocalAssignments
-  id: str = None
-  task: LocalTask = None
+  id: str | None = None
+  task: LocalTask | None = None
 
   def __post_init__(self):
     object.__setattr__(self, "assignments", LocalAssignments(self.assignments))
