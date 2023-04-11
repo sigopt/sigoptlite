@@ -4,7 +4,6 @@
 import mock
 import pytest
 
-from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME
 from libsigopt.views.rest.search_next_points import SearchNextPoints
 from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
@@ -30,7 +29,7 @@ class TestGPNextPoints(UnitTestsBase):
     assert hyperparameters["alpha"] > 0
 
     for lengthscales, parameter in zip(hyperparameters["length_scales"], experiment.parameters):
-      if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+      if parameter.is_categorical:
         assert len(lengthscales) == len(parameter.categorical_values)
       else:
         assert len(lengthscales) == 1

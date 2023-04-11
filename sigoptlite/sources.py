@@ -13,7 +13,6 @@ from libsigopt.aux.constant import (
   PARALLEL_CONSTANT_LIAR,
   QUANTIZED_EXPERIMENT_PARAMETER_NAME,
   ConstraintType,
-  ParameterPriorNames,
 )
 from libsigopt.aux.errors import SigoptComputeError
 from libsigopt.views.rest.gp_hyper_opt_multimetric import GpHyperOptMultimetricView
