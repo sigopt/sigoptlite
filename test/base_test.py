@@ -6,7 +6,6 @@ import copy
 import numpy
 import pytest
 
-
 from sigoptlite.builders import LocalObservationBuilder
 from sigoptlite.models import LocalSuggestion
 from sigoptlite.sources import RandomSearchSource
