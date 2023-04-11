@@ -1,2 +1,2 @@
-libsigopt @ git+http://github.com/sigopt/libsigopt@27084a64dc090a8eac49f02b31d92e6bcb9787fd
+libsigopt @ git+http://github.com/sigopt/libsigopt@ba7520b187d745eec5dba09b429c3ff6b748dfed
 numpy>=1.22.4,<2

@@ -11,7 +11,9 @@ from libsigopt.aux.constant import (
   ConstraintType,
   ParameterTransformationNames,
 )
+from libsigopt.aux.errors import InvalidTypeError
 from libsigopt.aux.geometry_utils import find_interior_point
+from libsigopt.aux.utils import is_integer, is_number
 
 from sigoptlite.models import parameter_conditions_satisfied
 
@@ -275,6 +277,15 @@ def validate_parameter(parameter):
     if parameter.bounds:
       raise ValueError(f"Categorical parameter should not have bounds: {parameter.bounds}")
 
+  if parameter.bounds:
+    parameter_bounds = [parameter.bounds.min, parameter.bounds.max]
+    if any(not check_type_for_parameter_value(parameter, p) for p in parameter_bounds):
+      invalid_value = next(p for p in parameter_bounds if not check_type_for_parameter_value(parameter, p))
+      raise ValueError(
+        f"Parameter bound {invalid_value} is not from the same type as paramater"
+        f" {parameter.name} ({parameter.type})"
+      )
+
   if parameter.grid:
     if not len(parameter.grid) > 1:
       raise ValueError(
@@ -284,6 +295,9 @@ def validate_parameter(parameter):
       raise ValueError(f"Grid parameter should not have bounds: {parameter.bounds}")
     if not get_num_distinct_elements(parameter.grid) == len(parameter.grid):
       raise ValueError(f"Grid values should be unique: {parameter.grid}")
+    if any(not check_type_for_parameter_value(parameter, p) for p in parameter.grid):
+      invalid_value = next(p for p in parameter.grid if not check_type_for_parameter_value(parameter, p))
+      raise ValueError(f"Grid value {invalid_value} is not from the same type as {parameter.name} ({parameter.type})")
 
   if parameter.has_transformation:
     if not parameter.is_double:
@@ -558,3 +572,14 @@ def validate_observation_tasks(observation, tasks):
       f"Task cost {obs_task_costs} is not a valid cost for this experiment. Must be one of the following:"
       f" {expected_task_costs}"
     )
+
+
+def check_type_for_parameter_value(parameter, value):
+  if parameter.is_int:
+    return is_integer(value)
+  elif parameter.is_double:
+    return is_number(value)
+  elif parameter.is_categorical:
+    return isinstance(value, str)
+  else:
+    raise InvalidTypeError(f"Parameter value {value} is not the same as parameter.type {parameter.type}")
