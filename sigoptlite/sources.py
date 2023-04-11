@@ -274,7 +274,7 @@ class BaseOptimizationSource(object):
     for assignment, parameter in zip(point, parameters):
       if parameter.has_log_transformation:
         assignment = 10**assignment
-      if parameter.is_int or parameter.is_double:
+      if parameter.is_categorical or parameter.is_int:
         assignment = round(assignment)
       if parameter.is_categorical:
         assignment = next(cv.name for cv in parameter.categorical_values if cv.enum_index == assignment)
