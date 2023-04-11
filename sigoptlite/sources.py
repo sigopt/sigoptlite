@@ -8,15 +8,12 @@ from libsigopt.aux.constant import (
   CATEGORICAL_EXPERIMENT_PARAMETER_NAME,
   DEFAULT_HYPERPARAMETER_ALPHA,
   DEFAULT_HYPERPARAMETER_TASK_LENGTH_SCALE,
-  DOUBLE_EXPERIMENT_PARAMETER_NAME,
-  INT_EXPERIMENT_PARAMETER_NAME,
   MAX_SIMULTANEOUS_AF_POINTS,
   MULTISOLUTION_QUANTILE_FOR_SEARCH_THRESHOLD,
   PARALLEL_CONSTANT_LIAR,
   QUANTIZED_EXPERIMENT_PARAMETER_NAME,
   ConstraintType,
   ParameterPriorNames,
-  ParameterTransformationNames,
 )
 from libsigopt.aux.errors import SigoptComputeError
 from libsigopt.views.rest.gp_hyper_opt_multimetric import GpHyperOptMultimetricView
@@ -216,29 +213,29 @@ class BaseOptimizationSource(object):
 
   @staticmethod
   def pe_parameter_info(parameter):
-    if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+    if parameter.is_categorical:
       elements = list(range(1, len(parameter.categorical_values) + 1))
     elif parameter.grid:
       elements = parameter.grid
     else:
       elements = [parameter.bounds.min, parameter.bounds.max]
-    var_type = parameter.type if not parameter.grid else QUANTIZED_EXPERIMENT_PARAMETER_NAME
-
-    if parameter.transformation == ParameterTransformationNames.LOG:
-      assert parameter.type == DOUBLE_EXPERIMENT_PARAMETER_NAME or parameter.grid
+    if parameter.has_log_transformation:
+      assert parameter.is_double or parameter.grid
       elements = numpy.log10(elements).tolist()
+
+    var_type = parameter.type if not parameter.grid else QUANTIZED_EXPERIMENT_PARAMETER_NAME
     return var_type, elements
 
   @staticmethod
   def parameter_to_prior_info(parameter):
-    if parameter.prior and parameter.prior.name == ParameterPriorNames.NORMAL:
-      name = ParameterPriorNames.NORMAL
+    if parameter.prior and parameter.prior.is_normal:
+      name = parameter.prior.name
       params = {
         "mean": parameter.prior.mean,
         "scale": parameter.prior.scale,
       }
-    elif parameter.prior and parameter.prior.name == ParameterPriorNames.BETA:
-      name = ParameterPriorNames.BETA
+    elif parameter.prior and parameter.prior.is_beta:
+      name = parameter.prior.name
       params = {
         "shape_a": parameter.prior.shape_a,
         "shape_b": parameter.prior.shape_b,
@@ -262,7 +259,7 @@ class BaseOptimizationSource(object):
       for index, p in enumerate(experiment.parameters):
         if p.name in nonzero_coef_map:
           constraint_vec[index] = nonzero_coef_map[p.name]
-          assert p.type in (DOUBLE_EXPERIMENT_PARAMETER_NAME, INT_EXPERIMENT_PARAMETER_NAME)
+          assert p.is_double or p.is_int
           var_type = p.type
 
       sign = -1 if constraint.type == ConstraintType.less_than else 1
@@ -276,11 +273,11 @@ class BaseOptimizationSource(object):
     parameters = experiment.parameters
     assignments = {}
     for assignment, parameter in zip(point, parameters):
-      if parameter.transformation == ParameterTransformationNames.LOG:
+      if parameter.has_log_transformation:
         assignment = 10**assignment
-      if parameter.type in (INT_EXPERIMENT_PARAMETER_NAME, CATEGORICAL_EXPERIMENT_PARAMETER_NAME):
+      if parameter.is_int or parameter.is_double:
         assignment = round(assignment)
-      if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+      if parameter.is_categorical:
         assignment = next(cv.name for cv in parameter.categorical_values if cv.enum_index == assignment)
       assignments[parameter.name] = assignment
     return assignments
@@ -292,9 +289,9 @@ class BaseOptimizationSource(object):
       parameter_value = assignments.get(parameter.name, None)
       if parameter_value is None:
         parameter_value = replacement_value_if_missing(parameter)
-      if parameter.transformation == ParameterTransformationNames.LOG:
+      if parameter.has_log_transformation:
         parameter_value = numpy.log10(parameter_value)
-      elif parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+      elif parameter.is_categorical:
         parameter_value = next(cv.enum_index for cv in parameter.categorical_values if cv.name == parameter_value)
       point[i] = parameter_value
     return point
@@ -389,13 +386,13 @@ class GPSource(BaseOptimizationSource):
 
   @staticmethod
   def default_lengthscales(parameter):
-    if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+    if parameter.is_categorical:
       return None
     if parameter.grid:
       return max(numpy.diff(parameter.grid))
     edge_length = parameter.bounds.max - parameter.bounds.min
     default = 0.1 * edge_length
-    if parameter.type == INT_EXPERIMENT_PARAMETER_NAME:
+    if parameter.is_int:
       default = max(default, 0.5)
     return default
 

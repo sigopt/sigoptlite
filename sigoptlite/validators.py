@@ -299,9 +299,9 @@ def validate_parameter(parameter):
       invalid_value = next(p for p in parameter.grid if not check_type_for_parameter_value(parameter, p))
       raise ValueError(f"Grid value {invalid_value} is not from the same type as {parameter.name} ({parameter.type})")
 
-  if parameter.has_transformation:
+  if parameter.has_log_transformation:
     if not parameter.is_double:
-      raise ValueError("Transformation only applies to parameters type of double")
+      raise ValueError("log-transformation only applies to parameters type of double")
     if parameter.bounds and parameter.bounds.min <= 0:
       raise ValueError("Invalid bounds for log-transformation: bounds must be positive")
     if parameter.grid and min(parameter.grid) <= 0:
@@ -312,7 +312,7 @@ def validate_parameter(parameter):
       raise ValueError("Prior only applies to parameters type of double")
     if parameter.grid:
       raise ValueError("Grid parameters cannot have priors")
-    if parameter.has_transformation:
+    if parameter.has_log_transformation:
       raise ValueError("Parameters with log transformation cannot have priors")
     if parameter.prior.is_normal:
       if not parameter.bounds.is_value_within(parameter.prior.mean):
@@ -422,11 +422,11 @@ def validate_constraints_for_experiment(experiment):
     parameter_names.append(p.name)
     if p.grid:
       grid_param_names.append(p.name)
-    if p.type == DOUBLE_EXPERIMENT_PARAMETER_NAME:
+    if p.is_double:
       double_params_names.append(p.name)
-    if p.type == INT_EXPERIMENT_PARAMETER_NAME:
+    if p.is_int:
       integer_params_names.append(p.name)
-    if p.type in [DOUBLE_EXPERIMENT_PARAMETER_NAME, INT_EXPERIMENT_PARAMETER_NAME]:
+    if p.is_int or p.is_double:
       if not p.conditions:
         unconditioned_params_names.append(p.name)
       if p.transformation == ParameterTransformationNames.LOG:
@@ -531,7 +531,7 @@ def observation_must_have_parameter(observation, parameter):
       f"Grid parameter {parameter.name} must have one of following grid values: "
       f"{parameter.grid} instead of {parameter_value}"
     )
-  if parameter.has_transformation:
+  if parameter.has_log_transformation:
     if not (parameter_value > 0):
       raise ValueError(f"Assignment must be positive for log-transformed parameter {parameter.name}")
 
