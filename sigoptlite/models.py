@@ -9,6 +9,7 @@ from libsigopt.aux.constant import (
   DOUBLE_EXPERIMENT_PARAMETER_NAME,
   INT_EXPERIMENT_PARAMETER_NAME,
   ParameterPriorNames,
+  ParameterTransformationNames,
 )
 
 
@@ -114,8 +115,8 @@ class LocalParameter:
     return self.prior is not None
 
   @property
-  def has_transformation(self):
-    return self.transformation is not None
+  def has_log_transformation(self):
+    return self.transformation == ParameterTransformationNames.LOG
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -207,7 +207,7 @@ class TestLocalParameterBuilder(UnitTestsBase):
       "transformation": "log",
     }
     parameter = LocalParameterBuilder(input_dict)
-    assert parameter.has_transformation
+    assert parameter.has_log_transformation
 
   @pytest.mark.parametrize("min_value", [-10, -1, 0])
   def test_parameter_log_transformation_bounds_incompatible(self, min_value):
