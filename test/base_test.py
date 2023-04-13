@@ -6,8 +6,6 @@ import copy
 import numpy
 import pytest
 
-from libsigopt.aux.constant import CATEGORICAL_EXPERIMENT_PARAMETER_NAME, INT_EXPERIMENT_PARAMETER_NAME
-
 from sigoptlite.builders import LocalObservationBuilder
 from sigoptlite.models import LocalSuggestion
 from sigoptlite.sources import RandomSearchSource
@@ -67,7 +65,7 @@ class UnitTestsBase(object):
         )
         assert parameter_satisfy_condition is False
         continue
-      if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+      if parameter.is_categorical:
         categorical_values_non_enum = [cv.name for cv in parameter.categorical_values]
         assert assignment in categorical_values_non_enum
       elif parameter.grid:
@@ -75,7 +73,7 @@ class UnitTestsBase(object):
       else:
         assert assignment <= parameter.bounds.max
         assert assignment >= parameter.bounds.min
-      if parameter.type == INT_EXPERIMENT_PARAMETER_NAME:
+      if parameter.is_int:
         assert int(assignment) == assignment
 
     for conditional in experiment.conditionals:

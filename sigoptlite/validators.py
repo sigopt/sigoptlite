@@ -11,7 +11,9 @@ from libsigopt.aux.constant import (
   ConstraintType,
   ParameterTransformationNames,
 )
+from libsigopt.aux.errors import InvalidTypeError
 from libsigopt.aux.geometry_utils import find_interior_point
+from libsigopt.aux.utils import is_integer, is_number
 
 from sigoptlite.models import parameter_conditions_satisfied
 
@@ -275,6 +277,15 @@ def validate_parameter(parameter):
     if parameter.bounds:
       raise ValueError(f"Categorical parameter should not have bounds: {parameter.bounds}")
 
+  if parameter.bounds:
+    parameter_bounds = [parameter.bounds.min, parameter.bounds.max]
+    if any(not check_type_for_parameter_value(parameter, p) for p in parameter_bounds):
+      invalid_value = next(p for p in parameter_bounds if not check_type_for_parameter_value(parameter, p))
+      raise ValueError(
+        f"Parameter bound {invalid_value} is not from the same type as paramater"
+        f" {parameter.name} ({parameter.type})"
+      )
+
   if parameter.grid:
     if not len(parameter.grid) > 1:
       raise ValueError(
@@ -284,10 +295,13 @@ def validate_parameter(parameter):
       raise ValueError(f"Grid parameter should not have bounds: {parameter.bounds}")
     if not get_num_distinct_elements(parameter.grid) == len(parameter.grid):
       raise ValueError(f"Grid values should be unique: {parameter.grid}")
+    if any(not check_type_for_parameter_value(parameter, p) for p in parameter.grid):
+      invalid_value = next(p for p in parameter.grid if not check_type_for_parameter_value(parameter, p))
+      raise ValueError(f"Grid value {invalid_value} is not from the same type as {parameter.name} ({parameter.type})")
 
-  if parameter.has_transformation:
+  if parameter.has_log_transformation:
     if not parameter.is_double:
-      raise ValueError("Transformation only applies to parameters type of double")
+      raise ValueError("log-transformation only applies to parameters type of double")
     if parameter.bounds and parameter.bounds.min <= 0:
       raise ValueError("Invalid bounds for log-transformation: bounds must be positive")
     if parameter.grid and min(parameter.grid) <= 0:
@@ -298,7 +312,7 @@ def validate_parameter(parameter):
       raise ValueError("Prior only applies to parameters type of double")
     if parameter.grid:
       raise ValueError("Grid parameters cannot have priors")
-    if parameter.has_transformation:
+    if parameter.has_log_transformation:
       raise ValueError("Parameters with log transformation cannot have priors")
     if parameter.prior.is_normal:
       if not parameter.bounds.is_value_within(parameter.prior.mean):
@@ -408,11 +422,11 @@ def validate_constraints_for_experiment(experiment):
     parameter_names.append(p.name)
     if p.grid:
       grid_param_names.append(p.name)
-    if p.type == DOUBLE_EXPERIMENT_PARAMETER_NAME:
+    if p.is_double:
       double_params_names.append(p.name)
-    if p.type == INT_EXPERIMENT_PARAMETER_NAME:
+    if p.is_int:
       integer_params_names.append(p.name)
-    if p.type in [DOUBLE_EXPERIMENT_PARAMETER_NAME, INT_EXPERIMENT_PARAMETER_NAME]:
+    if p.is_int or p.is_double:
       if not p.conditions:
         unconditioned_params_names.append(p.name)
       if p.transformation == ParameterTransformationNames.LOG:
@@ -517,7 +531,7 @@ def observation_must_have_parameter(observation, parameter):
       f"Grid parameter {parameter.name} must have one of following grid values: "
       f"{parameter.grid} instead of {parameter_value}"
     )
-  if parameter.has_transformation:
+  if parameter.has_log_transformation:
     if not (parameter_value > 0):
       raise ValueError(f"Assignment must be positive for log-transformed parameter {parameter.name}")
 
@@ -558,3 +572,14 @@ def validate_observation_tasks(observation, tasks):
       f"Task cost {obs_task_costs} is not a valid cost for this experiment. Must be one of the following:"
       f" {expected_task_costs}"
     )
+
+
+def check_type_for_parameter_value(parameter, value):
+  if parameter.is_int:
+    return is_integer(value)
+  elif parameter.is_double:
+    return is_number(value)
+  elif parameter.is_categorical:
+    return isinstance(value, str)
+  else:
+    raise InvalidTypeError(f"Parameter value {value} is not the same as parameter.type {parameter.type}")

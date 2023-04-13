@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache License 2.0
 import random
 
+import numpy
 import pytest
 
 from sigoptlite.builders import *
@@ -47,7 +48,7 @@ class TestLocalParameterBuilder(UnitTestsBase):
       "transformation": None,
     }
 
-  def test_non_categorical_creation(self):
+  def test_integer_parameter_creation(self):
     input_dict = {
       "name": "c",
       "type": "int",
@@ -71,6 +72,45 @@ class TestLocalParameterBuilder(UnitTestsBase):
     assert len(parameter.grid) == 0
     assert parameter.prior is None
     assert parameter.transformation is None
+
+  def test_integer_bounds(self):
+    input_dict = {
+      "name": "i",
+      "type": "int",
+      "bounds": {"min": 0, "max": 10},
+    }
+    parameter = LocalParameterBuilder(input_dict)
+    assert parameter.bounds.min == input_dict["bounds"]["min"]
+    assert parameter.bounds.max == input_dict["bounds"]["max"]
+
+  def test_integer_bounds_incompatible(self):
+    input_dict = {
+      "name": "i",
+      "type": "int",
+      "bounds": {"min": 0.0, "max": 1},
+    }
+    with pytest.raises(ValueError):
+      LocalParameterBuilder(input_dict)
+
+  def test_double_bounds(self):
+    input_dict = {
+      "name": "d",
+      "type": "double",
+      "bounds": {"min": 0, "max": 10.0},
+    }
+    parameter = LocalParameterBuilder(input_dict)
+    assert parameter.bounds.min == input_dict["bounds"]["min"]
+    assert parameter.bounds.max == input_dict["bounds"]["max"]
+
+  @pytest.mark.parametrize("bad_value", [None, "a", numpy.nan])
+  def test_double_bounds_incompatible(self, bad_value):
+    input_dict = {
+      "name": "d",
+      "type": "double",
+      "bounds": {"min": 0, "max": bad_value},
+    }
+    with pytest.raises(ValueError):
+      LocalParameterBuilder(input_dict)
 
   @pytest.mark.parametrize(
     "categorical_values",
@@ -140,6 +180,15 @@ class TestLocalParameterBuilder(UnitTestsBase):
     assert parameter.transformation is None
     assert not parameter.has_prior
 
+  def test_parameter_grid_incompatible_values(self):
+    input_dict = {
+      "name": "g",
+      "type": "int",
+      "grid": [2, 3.1, 4],
+    }
+    with pytest.raises(ValueError):
+      LocalParameterBuilder(input_dict)
+
   @pytest.mark.parametrize("param_type", ["int", "double"])
   def test_parameter_grid_single_value_incompatible(self, param_type):
     input_dict = {
@@ -158,7 +207,7 @@ class TestLocalParameterBuilder(UnitTestsBase):
       "transformation": "log",
     }
     parameter = LocalParameterBuilder(input_dict)
-    assert parameter.has_transformation
+    assert parameter.has_log_transformation
 
   @pytest.mark.parametrize("min_value", [-10, -1, 0])
   def test_parameter_log_transformation_bounds_incompatible(self, min_value):

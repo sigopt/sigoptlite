@@ -20,6 +20,12 @@ repos:
         args: [--branch=main]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.1.1"
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-mock
   - repo: https://github.com/sigopt/sigopt-tools.git
     rev: "v0.0.2"
     hooks:

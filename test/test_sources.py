@@ -33,7 +33,7 @@ class TestGPNextPoints(UnitTestsBase):
     assert hyperparameters["alpha"] > 0
 
     for lengthscales, parameter in zip(hyperparameters["length_scales"], experiment.parameters):
-      if parameter.type == CATEGORICAL_EXPERIMENT_PARAMETER_NAME:
+      if parameter.is_categorical:
         assert len(lengthscales) == len(parameter.categorical_values)
       else:
         assert len(lengthscales) == 1
