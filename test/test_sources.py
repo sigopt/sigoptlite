@@ -5,12 +5,11 @@ import mock
 import numpy
 import pytest
 
-from libsigopt.aux.errors import SigoptComputeError
 from libsigopt.views.rest.search_next_points import SearchNextPoints
 from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
 from sigoptlite.builders import LocalExperimentBuilder, LocalObservationBuilder
-from sigoptlite.sources import GPSource, RandomSearchSource, SPESource
+from sigoptlite.sources import EmptySuggestionError, GPSource, RandomSearchSource, SPESource
 
 from test.base_test import UnitTestsBase
 from test.constants import DEFAULT_METRICS, PARAMETER_CATEGORICAL
@@ -92,7 +91,7 @@ class TestGPNextPoints(UnitTestsBase):
 
     next_points, _ = GPSource(experiment).next_point(observations)
     assert next_points == []
-    with pytest.raises(SigoptComputeError):
+    with pytest.raises(EmptySuggestionError):
       GPSource(experiment).get_suggestion(observations)
 
 

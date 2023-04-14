@@ -5,11 +5,10 @@ from libsigopt.aux.constant import (
   DEFAULT_USE_SPE_AFTER_THIS_MANY_OBSERVATIONS,
   DEFAULT_USE_SPE_BEYOND_THIS_MANY_DIMENSIONS,
 )
-from libsigopt.aux.errors import SigoptComputeError
 
 from sigoptlite.builders import LocalObservationBuilder
 from sigoptlite.models import LocalSuggestion, dataclass_to_dict
-from sigoptlite.sources import GPSource, RandomSearchSource, SPESource
+from sigoptlite.sources import EmptySuggestionError, GPSource, RandomSearchSource, SPESource
 
 
 class Broker(object):
@@ -93,7 +92,7 @@ class Broker(object):
     # Try and generate a suggestion, otherwise fallback to random search
     try:
       suggestion_data = source.get_suggestion(self.observations)
-    except SigoptComputeError:
+    except EmptySuggestionError:
       suggestion_data = RandomSearchSource(self.experiment).get_suggestion(self.observations)
 
     suggestion_to_serve = LocalSuggestion(

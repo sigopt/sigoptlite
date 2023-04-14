@@ -30,6 +30,10 @@ from sigoptlite.models import LocalSuggestion, dataclass_to_dict, replacement_va
 EMPTY_POINTS_CONTAINER = PointsContainer(points=numpy.array([]))
 
 
+class EmptySuggestionError(SigoptComputeError):
+  pass
+
+
 class BaseOptimizationSource(object):
   def __init__(self, experiment):
     self._original_experiment = experiment
@@ -58,7 +62,9 @@ class BaseOptimizationSource(object):
   def get_suggestion(self, observations):
     suggested_points, suggested_task_cost = self.next_point(observations)
     if len(suggested_points) == 0:
-      raise SigoptComputeError("Was unable to generate a suggestion")
+      raise EmptySuggestionError(
+        "GP source was unable to generate a suggestion, likely because it exhausted all unique suggestions"
+      )
 
     assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
     task = self.get_task_by_cost(self.experiment, suggested_task_cost) if self.experiment.is_multitask else None
