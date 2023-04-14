@@ -91,8 +91,10 @@ class TestGPNextPoints(UnitTestsBase):
 
     next_points, _ = GPSource(experiment).next_point(observations)
     assert next_points == []
-    with pytest.raises(EmptySuggestionError):
+    with pytest.raises(EmptySuggestionError) as exception_info:
       GPSource(experiment).get_suggestion(observations)
+      msg = "GP source was unable to generate a suggestion, likely because it exhausted all unique suggestions"
+      assert exception_info.value.args[0].startswith(msg)
 
 
 class TestSPENextPoints(UnitTestsBase):
