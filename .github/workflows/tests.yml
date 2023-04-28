@@ -1,0 +1,45 @@
+name: libsigopt tests
+run-name: ${{ github.actor }} is testing ${{ github.repository }}@${{ github.ref }}
+on:
+  push: {}
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: pip install --upgrade pip setuptools
+      - run: pip install . -r requirements-dev.txt
+      - run: git ls-files '*.py' | xargs pylint --output-format=text -sn
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install . -r requirements-dev.txt
+      - run: pytest -rw --durations=5 --junitxml=junit-results.xml test/
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: |
+          set -e
+          curl -fSsLo trivy.deb https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb
+          sudo dpkg -i trivy.deb
+          rm trivy.deb
+      - run: trivy fs . --debug
