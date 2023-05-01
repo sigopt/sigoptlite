@@ -2,17 +2,15 @@
 #
 # SPDX-License-Identifier: Apache License 2.0
 import mock
-import numpy
 import pytest
 
 from libsigopt.views.rest.search_next_points import SearchNextPoints
 from libsigopt.views.rest.spe_search_next_points import SPESearchNextPoints
 
-from sigoptlite.builders import LocalExperimentBuilder, LocalObservationBuilder
+from sigoptlite.builders import LocalExperimentBuilder
 from sigoptlite.sources import EmptySuggestionError, GPSource, RandomSearchSource, SPESource
 
 from test.base_test import UnitTestsBase
-from test.constants import DEFAULT_METRICS, PARAMETER_CATEGORICAL
 
 
 class TestRandomSearch(UnitTestsBase):
@@ -74,27 +72,34 @@ class TestGPNextPoints(UnitTestsBase):
     assert point == [fake_point]
     assert task_cost is None
 
-  def test_space_exhausted_empty_next_points(self):
-    experiment_meta = dict(
-      parameters=[PARAMETER_CATEGORICAL],
-      metrics=DEFAULT_METRICS,
-    )
+  @pytest.mark.parametrize("feature", ["categorical", "integer"])
+  def test_space_exhausted_empty_next_points(self, feature):
+    experiment_meta = self.get_experiment_feature(feature)
     experiment = LocalExperimentBuilder(experiment_meta)
-    observations = []
-    for category in PARAMETER_CATEGORICAL["categorical_values"]:
-      observation_dict = dict(
-        assignments={PARAMETER_CATEGORICAL["name"]: category},
-        values=[dict(name=experiment.metrics[0].name, value=numpy.random.rand(), value_stddev=0)],
+
+    parameter = experiment_meta["parameters"][0]
+    elements = []
+    if feature == "categorical":
+      elements = parameter["categorical_values"]
+    elif feature == "integer":
+      bound_min, bound_max = parameter["bounds"]["min"], parameter["bounds"]["max"]
+      elements = [*range(bound_min, bound_max + 1)]
+
+    observations = [
+      self.make_observation(
+        experiment=experiment,
+        assignments={parameter["name"]: element},
+        values=[dict(name=experiment.metrics[0].name, value=i, value_stddev=0)],
       )
-      observation = LocalObservationBuilder(observation_dict, experiment=experiment)
-      observations.append(observation)
+      for i, element in enumerate(elements)
+    ]
 
     next_points, _ = GPSource(experiment).next_point(observations)
     assert next_points == []
     with pytest.raises(EmptySuggestionError) as exception_info:
       GPSource(experiment).get_suggestion(observations)
-      msg = "GP source was unable to generate a suggestion, likely because it exhausted all unique suggestions"
-      assert exception_info.value.args[0].startswith(msg)
+    msg = "Unable to generate suggestions. Maybe all unique suggestions were sampled?"
+    assert exception_info.value.args[0].startswith(msg)
 
 
 class TestSPENextPoints(UnitTestsBase):
@@ -117,3 +122,15 @@ class TestSPENextPoints(UnitTestsBase):
     point, task_cost = source.next_point(observations)
     assert point == [fake_point]
     assert task_cost is None
+
+
+class TestDiscreteOptions(UnitTestsBase):
+  @pytest.mark.parametrize("source_class", [RandomSearchSource, SPESource])
+  @pytest.mark.parametrize("feature,num_observations", [("categorical", 5), ("integer", 15)])
+  def test_exhausted_options(self, source_class, feature, num_observations):
+    experiment_meta = self.get_experiment_feature(feature)
+    experiment = LocalExperimentBuilder(experiment_meta)
+    source = source_class(experiment)
+    observations = self.make_random_observations(experiment, num_observations)
+    suggestion = source.get_suggestion(observations)
+    self.assert_valid_suggestion(suggestion, experiment)

@@ -60,14 +60,13 @@ class BaseOptimizationSource(object):
     return self.remove_conditional_transformation_from_suggestion(self._original_experiment, source_suggestion)
 
   def get_suggestion(self, observations):
-    suggested_points, suggested_task_cost = self.next_point(observations)
+    suggested_points, suggested_task_costs = self.next_point(observations)
     if len(suggested_points) == 0:
       raise EmptySuggestionError(
-        "GP source was unable to generate a suggestion, likely because it exhausted all unique suggestions"
+        "Unable to generate suggestions. Maybe all unique suggestions were sampled?"
       )
-
     assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
-    task = self.get_task_by_cost(self.experiment, suggested_task_cost) if self.experiment.is_multitask else None
+    task = self.get_task_by_cost(self.experiment, suggested_task_costs[0]) if self.experiment.is_multitask else None
     source_suggestion = LocalSuggestion(assignments=assignments, task=task)
     return self.remove_transformations_from_source_suggestion(source_suggestion)
 
@@ -373,11 +372,11 @@ class GPSource(BaseOptimizationSource):
 
     response = self.call_libsigopt_views(view_endpoint, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
-    task_cost = None
+    task_costs = None
     if self.experiment.is_multitask:
-      task_cost = response["task_costs"][0]
+      task_costs = response["task_costs"]
 
-    return suggested_points, task_cost
+    return suggested_points, task_costs
 
   @classmethod
   def get_default_hyperparameters(cls, experiment):
@@ -424,11 +423,11 @@ class SPESource(BaseOptimizationSource):
 
     response = self.call_libsigopt_views(view_endpoint, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
-    task_cost = None
+    task_costs = None
     if self.experiment.is_multitask:
-      task_cost = response["task_costs"][0]
+      task_costs = response["task_costs"]
 
-    return suggested_points, task_cost
+    return suggested_points, task_costs
 
 
 class RandomSearchSource(BaseOptimizationSource):
@@ -442,8 +441,8 @@ class RandomSearchSource(BaseOptimizationSource):
     response = self.call_libsigopt_views(RandomSearchNextPoints, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
 
-    task_cost = None
+    task_costs = None
     if self.experiment.is_multitask:
-      task_cost = response["task_costs"][0]
+      task_costs = response["task_costs"]
 
-    return suggested_points, task_cost
+    return suggested_points, task_costs

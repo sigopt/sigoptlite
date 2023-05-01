@@ -217,6 +217,18 @@ EXPERIMENT_META_PRIORS = dict(
   observation_budget=10,
 )
 
+EXPERIMENT_META_CATEGORICAL = dict(
+  parameters=[PARAMETER_CATEGORICAL],
+  metrics=DEFAULT_METRICS,
+  observation_budget=10,
+)
+
+EXPERIMENT_META_INTEGER = dict(
+  parameters=[PARAMETER_INT],
+  metrics=DEFAULT_METRICS,
+  observation_budget=10,
+)
+
 EXPERIMENT_META_CONDITIONALS = dict(
   name="conditional experiment",
   metrics=[dict(name="metric")],
@@ -265,9 +277,11 @@ EXPERIMENT_META_SEARCH = dict(
 )
 
 ALL_META = dict(
+  categorical=EXPERIMENT_META_CATEGORICAL,
   conditionals=EXPERIMENT_META_CONDITIONALS,
   constraints=EXPERIMENT_META_WITH_CONSTRAINTS,
   default=DEFAULT_EXPERIMENT_META,
+  integer=EXPERIMENT_META_INTEGER,
   multimetric=EXPERIMENT_META_MULTIMETRIC,
   multitask=EXPERIMENT_META_MULTITASK,
   multisolution=EXPERIMENT_META_MULTISOLUTION,

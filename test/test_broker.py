@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache License 2.0
 import mock
-import numpy
 import pytest
 
 from sigoptlite.broker import Broker
@@ -10,7 +9,6 @@ from sigoptlite.builders import LocalExperimentBuilder
 from sigoptlite.sources import GPSource
 
 from test.base_test import UnitTestsBase
-from test.constants import CATEGORICAL_EXPERIMENT_PARAMETER_NAME, DEFAULT_METRICS, INT_EXPERIMENT_PARAMETER_NAME
 
 
 class TestBroker(UnitTestsBase):
@@ -26,53 +24,21 @@ class TestBroker(UnitTestsBase):
       observation_dict = local_observation.get_client_observation(experiment)
       broker.create_observation(**observation_dict)
 
+  @pytest.mark.parametrize("feature", ["categorical", "integer"])
   @mock.patch.object(GPSource, "next_point")
-  def test_fallback_random_successful_when_categories_exhausted(self, mock_next_point):
-    parameter_name = "c"
-    categorical_values = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
-    parameter_high_category_count = dict(
-      name=parameter_name,
-      type=CATEGORICAL_EXPERIMENT_PARAMETER_NAME,
-      categorical_values=categorical_values,
-    )
-    experiment_meta = dict(
-      parameters=[parameter_high_category_count],
-      metrics=DEFAULT_METRICS,
-    )
+  def test_fallback_random_successful_when_suggestions_exhausted(self, mock_next_point, feature):
+    mock_next_point.return_value = [], None
+    num_observations = 3
+    experiment_meta = self.get_experiment_feature(feature)
     experiment = LocalExperimentBuilder(experiment_meta)
-    broker = Broker(experiment)
-    for category in parameter_high_category_count["categorical_values"]:
-      observation_dict = dict(
-        assignments={parameter_name: category},
-        values=[dict(name=experiment.metrics[0].name, value=numpy.random.rand(), value_stddev=0)],
-      )
-      broker.create_observation(**observation_dict)
+    with mock.patch("sigoptlite.broker.Broker.use_random", new_callable=mock.PropertyMock) as mock_use_random:
+      mock_use_random.return_value = False
+      broker = Broker(experiment)
+      for local_observation in self.make_random_observations(experiment, num_observations):
+        observation_dict = local_observation.get_client_observation(experiment)
+        broker.create_observation(**observation_dict)
+      suggestion = broker.create_suggestion()
 
-    mock_next_point.return_value = [[]], None
-    broker.create_suggestion()
-
-  @mock.patch.object(GPSource, "next_point")
-  def test_fallback_random_successful_when_integers_exhausted(self, mock_next_point):
-    parameter_name = "i"
-    start = 1
-    stop = 100
-    parameter_high_int_count = dict(
-      name=parameter_name,
-      type=INT_EXPERIMENT_PARAMETER_NAME,
-      bounds=dict(min=start, max=stop),
-    )
-    experiment_meta = dict(
-      parameters=[parameter_high_int_count],
-      metrics=DEFAULT_METRICS,
-    )
-    experiment = LocalExperimentBuilder(experiment_meta)
-    broker = Broker(experiment)
-    for i in numpy.arange(start, stop + 1):
-      observation_dict = dict(
-        assignments={parameter_name: i},
-        values=[dict(name=experiment.metrics[0].name, value=numpy.random.rand(), value_stddev=0)],
-      )
-      broker.create_observation(**observation_dict)
-
-    mock_next_point.return_value = [[]], None
-    broker.create_suggestion()
+    mock_use_random.assert_called_once()
+    mock_next_point.assert_called_once()
+    self.assert_valid_suggestion(suggestion, experiment)
