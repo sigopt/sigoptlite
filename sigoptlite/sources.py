@@ -62,9 +62,7 @@ class BaseOptimizationSource(object):
   def get_suggestion(self, observations):
     suggested_points, suggested_task_costs = self.next_point(observations)
     if len(suggested_points) == 0:
-      raise EmptySuggestionError(
-        "Unable to generate suggestions. Maybe all unique suggestions were sampled?"
-      )
+      raise EmptySuggestionError("Unable to generate suggestions. Maybe all unique suggestions were sampled?")
     assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
     task = self.get_task_by_cost(self.experiment, suggested_task_costs[0]) if self.experiment.is_multitask else None
     source_suggestion = LocalSuggestion(assignments=assignments, task=task)
