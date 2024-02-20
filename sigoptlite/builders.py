@@ -254,8 +254,7 @@ class LocalObservationBuilder(BuilderBase):
   def create_object(cls, **input_dict):
     cls.set_object(input_dict, "assignments", LocalAssignments)
     cls.set_list_of_objects(input_dict, field="values", local_class=MetricEvaluationBuilder)
-    values = input_dict.get("values")
-    if values:
+    if values := input_dict.get("values"):
       input_dict["metric_evaluations"] = {me.name: me for me in values}
     input_dict.pop("values", None)
     cls.set_object(input_dict, "task", LocalTaskBuilder)
@@ -273,8 +272,7 @@ class MetricEvaluationBuilder(BuilderBase):
   def validate_input_dict(cls, input_dict):
     assert isinstance(input_dict["name"], str)
     assert isinstance(input_dict["value"], (int, float))
-    value_stddev = input_dict.get("value_stddev", None)
-    if value_stddev is not None:
+    if (value_stddev := input_dict.get("value_stddev", None)) is not None:
       assert isinstance(input_dict["value_stddev"], (int, float))
       assert input_dict["value_stddev"] >= 0
       assert set(input_dict.keys()) == {"name", "value", "value_stddev"}

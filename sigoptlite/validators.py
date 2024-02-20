@@ -204,8 +204,7 @@ def validate_experiment(experiment, cls_name):
   if not experiment.parallel_bandwidth == 1:
     raise ValueError(f"{cls_name} must have parallel_bandwidth == 1")
 
-  observation_budget = experiment.observation_budget
-  if observation_budget is None:
+  if (observation_budget := experiment.observation_budget) is None:
     if experiment.num_solutions > 1:
       raise ValueError(f"observation_budget is required for a {cls_name} with multiple solutions")
     if experiment.requires_pareto_frontier_optimization:
@@ -250,8 +249,7 @@ def validate_experiment(experiment, cls_name):
     validate_conditionals_for_experiment(experiment)
 
   # Check feature viability of multitask
-  tasks = experiment.tasks
-  if tasks:
+  if tasks := experiment.tasks:
     if experiment.requires_pareto_frontier_optimization:
       raise ValueError(f"{cls_name} cannot have both tasks and multiple optimized metrics")
     if experiment.has_constraint_metrics:
@@ -441,8 +439,7 @@ def validate_constraints_for_experiment(experiment):
 
     term_types = []
     for term in terms:
-      coeff = term.weight
-      if coeff == 0:
+      if (coeff := term.weight) == 0:
         continue
       name = term.name
       if name in integer_params_names:

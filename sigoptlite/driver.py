@@ -112,7 +112,6 @@ class LocalDriver:
 
   def request(self, method, path, data, headers):
     route = self.path_to_route(path, method)
-    handler = self.routes.get(route, {}).get(method)
-    if handler is None:
+    if (handler := self.routes.get(route, {}).get(method)) is None:
       raise Exception(f"{PRODUCT_NAME} only supports the following routes: {' '.join(self.routes.keys())}")
     return handler(data)

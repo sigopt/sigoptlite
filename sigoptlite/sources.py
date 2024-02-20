@@ -291,8 +291,7 @@ class BaseOptimizationSource(object):
   def get_point_from_assignments(experiment, assignments):
     point = numpy.empty(experiment.dimension)
     for i, parameter in enumerate(experiment.parameters):
-      parameter_value = assignments.get(parameter.name, None)
-      if parameter_value is None:
+      if (parameter_value := assignments.get(parameter.name, None)) is None:
         parameter_value = replacement_value_if_missing(parameter)
       if parameter.has_log_transformation:
         parameter_value = numpy.log10(parameter_value)

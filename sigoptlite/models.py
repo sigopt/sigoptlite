@@ -254,8 +254,7 @@ class LocalObservation:
     return [self.get_value_for_maximization(metric) for metric in experiment.optimized_metrics]
 
   def get_value_for_maximization(self, metric):
-    value = self.get_metric_evaluation_by_name(metric.name).value
-    if value is None:
+    if (value := self.get_metric_evaluation_by_name(metric.name).value) is None:
       raise Exception(f"Metric `{metric.name}` is not in observation data.")
     if metric.is_minimized:
       return -value
