@@ -12,7 +12,7 @@ class BestAssignmentsLogger(object):
     self.experiment = experiment
     self.full_task_cost = None
     if self.experiment.is_multitask:
-      self.full_task_cost = max([task.cost for task in self.experiment.tasks])
+      self.full_task_cost = max(task.cost for task in self.experiment.tasks)
 
   def observation_is_valid_and_full_cost(self, observation):
     if observation.failed:
