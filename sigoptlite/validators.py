@@ -355,7 +355,7 @@ def validate_observation(observation, experiment):
 
 def check_all_conditional_values_satisfied_for_experiment(experiment):
   num_conditional_values = numpy.product([len(c.values) for c in experiment.conditionals])
-  satisfied_parameter_configurations = set([])
+  satisfied_parameter_configurations = set()
   for parameter in experiment.parameters:
     conditional_values = []
     for conditional in experiment.conditionals:
