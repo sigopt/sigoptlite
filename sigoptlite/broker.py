@@ -45,7 +45,7 @@ class Broker(object):
     observation_count = len(self.observations)
     observation_budget_consumed = observation_count
     if self.experiment.is_multitask:
-      observation_budget_consumed = sum([o.task.cost for o in self.observations])
+      observation_budget_consumed = sum(o.task.cost for o in self.observations)
 
     return dict(
       observation_budget_consumed=observation_budget_consumed,
