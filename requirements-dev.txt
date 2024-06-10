@@ -1,6 +1,6 @@
 build==1.2.1
 mock==5.1.0
 pre-commit>=3.3.3,<4
-pylint==3.2.2
+pylint==3.2.3
 pytest==8.2.1
 sigopt>=8.8.2,<8.9
