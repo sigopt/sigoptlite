@@ -52,6 +52,7 @@ class Broker(object):
       observation_count=observation_count,
     )
 
+  # pylint: disable=too-many-positional-arguments
   def create_observation(self, assignments=None, values=None, suggestion=None, failed=False, task=None):
     self.validate_observation_assignments_and_suggestions(assignments, suggestion)
 
