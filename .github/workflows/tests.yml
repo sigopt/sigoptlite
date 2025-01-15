@@ -5,7 +5,7 @@ on:
   push: {}
 jobs:
   pylint:
-    runs-on: ubuntu-latest
+    runs-on: python:3.10-bookworm
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
