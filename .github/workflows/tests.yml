@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
       - run: pip install --upgrade pip setuptools
       - run: pip install . -r requirements-dev.txt
       - run: git ls-files '*.py' | xargs pylint --output-format=text -sn
