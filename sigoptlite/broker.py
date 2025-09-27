@@ -15,7 +15,7 @@ class Broker(object):
   def __init__(self, experiment, force_spe=False):
     self.experiment = experiment
     self.observations = []
-    self.stored_suggestion = None
+    self.stored_suggestions = []
     self.hyperparameters = None
     self.force_spe = force_spe
     self.suggestion_id = 1
@@ -58,9 +58,9 @@ class Broker(object):
 
     if assignments is None:
       self.validate_observation_with_suggestion_id(suggestion)
-      assignments = self.stored_suggestion.assignments
-      if self.stored_suggestion.task is not None:
-        task = dataclass_to_dict(self.stored_suggestion.task)
+      assignments = self.stored_suggestions.assignments
+      if self.stored_suggestions.task is not None:
+        task = dataclass_to_dict(self.stored_suggestions.task)
 
     observation = LocalObservationBuilder(
       input_dict=dict(
@@ -72,16 +72,13 @@ class Broker(object):
       experiment=self.experiment,
     )
     self.observations.append(observation)
-    self.stored_suggestion = None
+    self.stored_suggestions = None
     return observation.get_client_observation(self.experiment)
 
   def get_observations(self):
     return [o.get_client_observation(self.experiment) for o in self.observations]
 
-  def create_suggestion(self):
-    if self.stored_suggestion is not None:
-      return self.stored_suggestion
-
+  def _create_stored_suggestions(self):
     if self.use_random:
       source = RandomSearchSource(self.experiment)
     elif self.use_spe:
@@ -92,18 +89,28 @@ class Broker(object):
 
     # Try and generate a suggestion, otherwise fallback to random search
     try:
-      suggestion_data = source.get_suggestion(self.observations)
+      suggestions_data = source.get_suggestion(self.observations)
     except EmptySuggestionError:
-      suggestion_data = RandomSearchSource(self.experiment).get_suggestion(self.observations)
+      suggestions_data = RandomSearchSource(self.experiment).get_suggestion(self.observations)
 
-    suggestion_to_serve = LocalSuggestion(
-      id=str(self.suggestion_id),
-      assignments=suggestion_data.assignments,
-      task=suggestion_data.task,
-    )
-    self.stored_suggestion = suggestion_to_serve
-    self.suggestion_id += 1
-    return suggestion_to_serve
+    suggestions_to_serve = []
+    for suggestion_data in suggestions_data:
+      suggestion_to_serve = LocalSuggestion(
+        id=str(self.suggestion_id),
+        assignments=suggestion_data.assignments,
+        task=suggestion_data.task,
+      )
+      suggestions_to_serve.append(suggestion_to_serve)
+      self.suggestion_id += 1
+
+    assert len(self.stored_suggestions) == 0
+    self.stored_suggestions = suggestions_to_serve
+
+  def create_suggestion(self):
+    if len(self.stored_suggestions) == 0:
+      self._create_stored_suggestions()
+    assert len(self.stored_suggestions) > 0, "store suggestions is empty"
+    return self.stored_suggestions[0]
 
   def validate_observation_assignments_and_suggestions(self, suggestion_id, assignments):
     if (assignments is None) and (suggestion_id is None):
@@ -112,10 +119,11 @@ class Broker(object):
       raise ValueError("Cannot specify `suggestion` and `assignments`.")
 
   def validate_observation_with_suggestion_id(self, suggestion_id):
-    if self.stored_suggestion is None:
+    if len(self.stored_suggestions) == 0:
       raise ValueError("There is no stored suggestion to use. Please create a suggestion")
-    if suggestion_id != self.stored_suggestion.id:
+    stored_suggestions_ids = [s.id for s in self.stored_suggestions]
+    if suggestion_id not in stored_suggestions_ids:
       raise ValueError(
-        f"The suggestion you provided: {suggestion_id} does not match the suggestion stored:"
-        f" {self.stored_suggestion.id}"
+        f"The suggestion you provided: {suggestion_id} does not match the ids of stored:"
+        f" suggestions {stored_suggestions_ids}"
       )

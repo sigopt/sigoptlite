@@ -11,6 +11,7 @@ from libsigopt.aux.constant import (
   MAX_SIMULTANEOUS_AF_POINTS,
   MULTISOLUTION_QUANTILE_FOR_SEARCH_THRESHOLD,
   PARALLEL_CONSTANT_LIAR,
+  PARALLEL_QEI,
   QUANTIZED_EXPERIMENT_PARAMETER_NAME,
   ConstraintType,
 )
@@ -39,7 +40,7 @@ class BaseOptimizationSource(object):
     self._original_experiment = experiment
     self.experiment = self.apply_transformations_to_experiment(experiment)
 
-  def next_point(self, observations):
+  def next_point(self, observations, num_to_sample=1):
     raise NotImplementedError()
 
   @classmethod
@@ -59,14 +60,20 @@ class BaseOptimizationSource(object):
       return source_suggestion
     return self.remove_conditional_transformation_from_suggestion(self._original_experiment, source_suggestion)
 
-  def get_suggestion(self, observations):
-    suggested_points, suggested_task_costs = self.next_point(observations)
+  def get_suggestion(self, observations, num_to_sample=1):
+    suggested_points, suggested_task_costs = self.next_point(observations, num_to_sample)
     if len(suggested_points) == 0:
       raise EmptySuggestionError("Unable to generate suggestions. Maybe all unique suggestions were sampled?")
-    assignments = self.make_assignments_from_point(self.experiment, suggested_points[0])
-    task = self.get_task_by_cost(self.experiment, suggested_task_costs[0]) if self.experiment.is_multitask else None
-    source_suggestion = LocalSuggestion(assignments=assignments, task=task)
-    return self.remove_transformations_from_source_suggestion(source_suggestion)
+    suggestions = []
+    for i, suggestion_point in enumerate(suggested_points):
+      assignments = self.make_assignments_from_point(self.experiment, suggestion_point)
+      if suggested_task_costs:
+        suggestion_cost = suggested_task_costs[i]
+      task = self.get_task_by_cost(self.experiment, suggestion_cost) if self.experiment.is_multitask else None
+      source_suggestion = LocalSuggestion(assignments=assignments, task=task)
+      suggestion = self.remove_transformations_from_source_suggestion(source_suggestion)
+      suggestions.append(suggestion)
+    return suggestions
 
   @classmethod
   def apply_conditional_transformation_to_experiment(cls, experiment):
@@ -139,6 +146,21 @@ class BaseOptimizationSource(object):
       values=values,
       value_vars=value_vars,
       failures=failures,
+      task_costs=task_costs if experiment.is_multitask else None,
+    )
+
+  @classmethod
+  def _make_points_being_sampled(cls, experiment, open_suggestion_datas=None):
+    open_suggestion_datas = open_suggestion_datas or []
+    open_suggestions_count = len(open_suggestion_datas)
+    points = numpy.empty((open_suggestions_count, experiment.dimension))
+    task_costs = numpy.ones(open_suggestions_count)
+    for i, open_suggestion in enumerate(open_suggestion_datas):
+      points[i, :] = cls.get_point_from_assignments(experiment, open_suggestion.assignments)
+      task_costs[i] = open_suggestion.task.cost
+
+    return PointsContainer(
+      points=points,
       task_costs=task_costs if experiment.is_multitask else None,
     )
 
@@ -349,16 +371,19 @@ class GPSource(BaseOptimizationSource):
     self.hyperparameters = response["hyperparameter_dict"]
     return self.hyperparameters
 
-  def next_point(self, observations):
+  def next_point(self, observations, num_to_sample=1, open_suggestion_datas=None):
     assert self.hyperparameters is not None
     points_sampled = self.make_points_sampled(self.experiment, observations)
+    points_being_sampled = self._make_points_being_sampled(self.experiment, open_suggestion_datas)
+    parallelism = self.form_gp_parallelism_strategy(use_qei=True)
+
     view_input = {
       "domain_info": self.form_domain_info(self.experiment),
       "model_info": self.form_gp_model_info(observations, self.hyperparameters),
-      "num_to_sample": 1,
-      "parallelism": PARALLEL_CONSTANT_LIAR,
+      "num_to_sample": num_to_sample,
+      "parallelism": parallelism,
       "points_sampled": points_sampled,
-      "points_being_sampled": EMPTY_POINTS_CONTAINER,
+      "points_being_sampled": points_being_sampled,
       "tag": {},
       "metrics_info": self.form_metrics_info(self.experiment, points_sampled),
       "task_options": [t.cost for t in self.experiment.tasks],
@@ -370,11 +395,15 @@ class GPSource(BaseOptimizationSource):
 
     response = self.call_libsigopt_views(view_endpoint, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
-    task_costs = None
-    if self.experiment.is_multitask:
-      task_costs = response["task_costs"]
+    task_costs = (float(cost) for cost in response["task_costs"]) if self.experiment.is_multitask else None
 
     return suggested_points, task_costs
+
+  @staticmethod
+  def form_gp_parallelism_strategy(use_qei):
+    if use_qei:
+      return PARALLEL_QEI
+    return PARALLEL_CONSTANT_LIAR
 
   @classmethod
   def get_default_hyperparameters(cls, experiment):
@@ -403,13 +432,14 @@ class GPSource(BaseOptimizationSource):
 
 
 class SPESource(BaseOptimizationSource):
-  def next_point(self, observations):
+  def next_point(self, observations, num_to_sample=1, open_suggestion_datas=None):
     points_sampled = self.make_points_sampled(self.experiment, observations[::-1])
+    points_being_sampled = self._make_points_being_sampled(self.experiment, open_suggestion_datas)
     view_input = {
       "domain_info": self.form_domain_info(self.experiment),
-      "num_to_sample": 1,
+      "num_to_sample": num_to_sample,
       "points_sampled": points_sampled,
-      "points_being_sampled": EMPTY_POINTS_CONTAINER,
+      "points_being_sampled": points_being_sampled,
       "tag": {},
       "metrics_info": self.form_metrics_info(self.experiment, points_sampled),
       "task_options": [t.cost for t in self.experiment.tasks],
@@ -421,26 +451,22 @@ class SPESource(BaseOptimizationSource):
 
     response = self.call_libsigopt_views(view_endpoint, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
-    task_costs = None
-    if self.experiment.is_multitask:
-      task_costs = response["task_costs"]
+    task_costs = (float(cost) for cost in response["task_costs"]) if self.experiment.is_multitask else None
 
     return suggested_points, task_costs
 
 
 class RandomSearchSource(BaseOptimizationSource):
-  def next_point(self, _):
+  def next_point(self, _, num_to_sample=1):
     view_input = {
       "domain_info": self.form_domain_info(self.experiment),
-      "num_to_sample": 1,
+      "num_to_sample": num_to_sample,
       "tag": {},
       "task_options": [t.cost for t in self.experiment.tasks],
     }
     response = self.call_libsigopt_views(RandomSearchNextPoints, view_input)
     suggested_points = [[float(coord) for coord in point] for point in response["points_to_sample"]]
 
-    task_costs = None
-    if self.experiment.is_multitask:
-      task_costs = response["task_costs"]
+    task_costs = (float(cost) for cost in response["task_costs"]) if self.experiment.is_multitask else None
 
     return suggested_points, task_costs
